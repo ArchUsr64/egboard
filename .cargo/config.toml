@@ -1,0 +1,8 @@
+[build]
+target = "thumbv6m-none-eabi"
+
+rustflags = [
+]
+
+[env]
+DEFMT_LOG = "debug"
