@@ -122,6 +122,7 @@ dependencies = [
  "cortex-m",
  "cortex-m-rt",
  "embedded-hal",
+ "fugit",
  "panic-halt",
  "rp-pico",
 ]
@@ -304,8 +305,7 @@ dependencies = [
 [[package]]
 name = "rp-pico"
 version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "15eec35d047d5ac3f9bc12686687e404f587acce23f76b6af04c0e0ce270a0b5"
+source = "git+https://github.com/ArchUsr64/rp-hal#e59b706ecefae5d1059584b60fa1dfbf6e78bdfd"
 dependencies = [
  "cortex-m",
  "cortex-m-rt",
@@ -327,8 +327,7 @@ dependencies = [
 [[package]]
 name = "rp2040-hal"
 version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f919d0d3c64fd9c7642dac2267a55d6aa1667e45329e8605a3858727acc7711"
+source = "git+https://github.com/ArchUsr64/rp-hal#e59b706ecefae5d1059584b60fa1dfbf6e78bdfd"
 dependencies = [
  "cortex-m",
  "cortex-m-rt",
@@ -351,10 +350,8 @@ dependencies = [
 [[package]]
 name = "rp2040-hal-macros"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "86479063e497efe1ae81995ef9071f54fd1c7427e04d6c5b84cde545ff672a5e"
+source = "git+https://github.com/ArchUsr64/rp-hal#e59b706ecefae5d1059584b60fa1dfbf6e78bdfd"
 dependencies = [
- "cortex-m-rt",
  "proc-macro2",
  "quote",
  "syn",
