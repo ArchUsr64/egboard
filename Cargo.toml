@@ -12,3 +12,10 @@ embedded-hal = "0.2.7"
 panic-halt = "0.2.0"
 cortex-m = "0.7.6"
 fugit = "0.3.6"
+defmt = "0.3.2"
+defmt-rtt = "0.4.0"
+
+[[bin]]
+name = "egboard"
+test = false
+harness = false
