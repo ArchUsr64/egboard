@@ -2,5 +2,7 @@
 target = "thumbv6m-none-eabi"
 
 rustflags = [
+  "-C", "link-arg=-Tdefmt.x",
   "-C", "link-arg=-Tlink.x",
+  "-C", "link-arg=--nmagic",
 ]
