@@ -2,18 +2,9 @@
 #![no_std]
 #![no_main]
 
-use embedded_hal::digital::v2::OutputPin;
-use fugit::HertzU32;
-use hal::gpio::pin::bank0::{Gpio0, Gpio1};
-use hal::uart::{DataBits, StopBits, UartConfig};
 use rp_pico::entry;
 use rp_pico::hal::pac;
 use rp_pico::hal::prelude::*;
-type UartPins = (
-	hal::gpio::Pin<Gpio0, hal::gpio::Function<hal::gpio::Uart>>,
-	hal::gpio::Pin<Gpio1, hal::gpio::Function<hal::gpio::Uart>>,
-);
-type Uart = hal::uart::UartPeripheral<hal::uart::Enabled, pac::UART0, UartPins>;
 use defmt::println;
 use defmt_rtt as _;
 use rp_pico::hal;
@@ -45,15 +36,6 @@ fn panic(panic_info: &PanicInfo) -> ! {
 
 #[entry]
 fn main() -> ! {
-	defmt::info!("hi");
-	let x = "f".parse::<u8>().unwrap();
-	// let x = unwrap!("f".parse::<u8>(), "bro");
-	pub const CUSTOM_CONFIG: UartConfig = UartConfig {
-		baudrate: HertzU32::from_raw(115_200),
-		data_bits: DataBits::Eight,
-		stop_bits: StopBits::One,
-		parity: None,
-	};
 	let mut pac = rp_pico::hal::pac::Peripherals::take().unwrap();
 	let core = rp_pico::hal::pac::CorePeripherals::take().unwrap();
 	let mut watchdog = rp_pico::hal::Watchdog::new(pac.WATCHDOG);
@@ -76,14 +58,6 @@ fn main() -> ! {
 		sio.gpio_bank0,
 		&mut pac.RESETS,
 	);
-	let uart_pins = (
-		pins.gpio0.into_mode::<hal::gpio::FunctionUart>(),
-		pins.gpio1.into_mode::<hal::gpio::FunctionUart>(),
-	);
-	let mut uart = hal::uart::UartPeripheral::new(pac.UART0, uart_pins, &mut pac.RESETS)
-		.enable(CUSTOM_CONFIG, clocks.peripheral_clock.freq())
-		.unwrap();
 	loop {
-		uart.write_full_blocking(b"Hello World\n");
 	}
 }
