@@ -1,45 +1,28 @@
-#![allow(unused)]
 #![no_std]
 #![no_main]
 
-use rp_pico::entry;
-use rp_pico::hal::pac;
-use rp_pico::hal::prelude::*;
-use defmt::println;
-use defmt_rtt as _;
-use rp_pico::hal;
+mod get_key_state_macro;
+mod keys_macro;
+mod panic_handler;
 
-use core::panic::PanicInfo;
-#[panic_handler]
-fn panic(panic_info: &PanicInfo) -> ! {
-	defmt::error!("[PANIC OCCURED]");
-	let location = panic_info.location();
-	let payload = panic_info.payload().downcast_ref::<&str>();
-	if location.and(payload).is_none() {
-		defmt::println!("'no further information could be recovered'");
-	} else {
-		if let Some(location) = panic_info.location() {
-			println!(
-				"'panic occurred in file '{}' at line {}'",
-				location.file(),
-				location.line(),
-			);
-		} else {
-			println!("'can't get panic location information…'");
-		}
-		if let Some(s) = panic_info.payload().downcast_ref::<&str>() {
-			println!("'panic payload: '{}''", s);
-		}
-	}
-	loop {}
-}
+type KeyDown = bool;
+
+use defmt::*;
+use defmt_rtt as _;
+use embedded_hal::digital::v2::{InputPin, OutputPin};
+use rp_pico::{entry, hal};
 
 #[entry]
 fn main() -> ! {
-	let mut pac = rp_pico::hal::pac::Peripherals::take().unwrap();
-	let core = rp_pico::hal::pac::CorePeripherals::take().unwrap();
-	let mut watchdog = rp_pico::hal::Watchdog::new(pac.WATCHDOG);
-	let clocks = hal::clocks::init_clocks_and_plls(
+	use cortex_m::delay::Delay;
+	use rp_pico::hal::{
+		pac::{CorePeripherals, Peripherals},
+		Clock, Watchdog,
+	};
+	let mut pac = Peripherals::take().unwrap();
+	let core = CorePeripherals::take().unwrap();
+	let mut watchdog = Watchdog::new(pac.WATCHDOG);
+	let clocks = rp_pico::hal::clocks::init_clocks_and_plls(
 		rp_pico::XOSC_CRYSTAL_FREQ,
 		pac.XOSC,
 		pac.CLOCKS,
@@ -50,7 +33,7 @@ fn main() -> ! {
 	)
 	.ok()
 	.unwrap();
-	let mut delay = cortex_m::delay::Delay::new(core.SYST, clocks.system_clock.freq().to_Hz());
+	let mut delay = Delay::new(core.SYST, clocks.system_clock.freq().to_Hz());
 	let sio = hal::Sio::new(pac.SIO);
 	let pins = rp_pico::Pins::new(
 		pac.IO_BANK0,
@@ -58,6 +41,19 @@ fn main() -> ! {
 		sio.gpio_bank0,
 		&mut pac.RESETS,
 	);
+
+	info!("Started!");
+
+	let uart_tx = pins.gpio0.into_mode::<hal::gpio::FunctionUart>();
+	let uart_rx = pins.gpio1.into_mode::<hal::gpio::FunctionUart>();
+
+	use hal::uart::{common_configs::_9600_8_N_1 as _9600, UartPeripheral};
+	let uart = UartPeripheral::new(pac.UART0, (uart_tx, uart_rx), &mut pac.RESETS)
+		.enable(_9600, clocks.peripheral_clock.freq())
+		.unwrap();
+
 	loop {
+		delay.delay_ms(1);
+		uart.write_full_blocking(b"broThisisNUTS!...");
 	}
 }
