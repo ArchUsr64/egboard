@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 
+mod data_encoder;
 mod get_key_state_macro;
 mod keys_macro;
 mod panic_handler;
@@ -55,10 +56,13 @@ fn main() -> ! {
 	let keys =
 		keys!(pins, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22);
 
-	let key_status: [KeyDown; 21] = get_key_state!(keys);
-
 	loop {
 		delay.delay_ms(1);
-		uart.write_full_blocking(b"broThisisNUTS!...");
+		let key_status: [KeyDown; 21] = get_key_state!(keys);
+		let data = data_encoder::encode(&key_status);
+		uart.write_full_blocking(&255u8.to_ne_bytes());
+		uart.write_full_blocking(&data);
+		uart.write_full_blocking(&data);
+		uart.write_full_blocking(&data);
 	}
 }
