@@ -35,6 +35,7 @@ fn main() -> ! {
 	.ok()
 	.unwrap();
 	let mut delay = Delay::new(core.SYST, clocks.system_clock.freq().to_Hz());
+	delay.delay_ms(100);
 	let sio = hal::Sio::new(pac.SIO);
 	let pins = rp_pico::Pins::new(
 		pac.IO_BANK0,
@@ -43,7 +44,8 @@ fn main() -> ! {
 		&mut pac.RESETS,
 	);
 
-	info!("Started!");
+	let mut led = pins.led.into_push_pull_output();
+	led.set_high().unwrap();
 
 	let uart_tx = pins.gpio0.into_mode::<hal::gpio::FunctionUart>();
 	let uart_rx = pins.gpio1.into_mode::<hal::gpio::FunctionUart>();
@@ -57,12 +59,9 @@ fn main() -> ! {
 		keys!(pins, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22);
 
 	loop {
-		delay.delay_ms(1);
 		let key_status: [KeyDown; 21] = get_key_state!(keys);
 		let data = data_encoder::encode(&key_status);
-		uart.write_full_blocking(&255u8.to_ne_bytes());
-		uart.write_full_blocking(&data);
-		uart.write_full_blocking(&data);
+		uart.write_full_blocking(&[0b10101010]);
 		uart.write_full_blocking(&data);
 	}
 }
