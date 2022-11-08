@@ -3,9 +3,9 @@ $fn = 100;
 module keycap(size2, center2) {
 	translate([center2[0], center2[1], 0]) {
 		multmatrix(m = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]])
-			linear_extrude(1, scale = 0.9) offset(1)
-				square_centered([size2[0] - 2, size2[0] - 2], [0, 0]);
-		linear_extrude(3) projection() import("keycap-stud.stl");
+			linear_extrude(1.5, scale = 0.9) offset(4)
+				square_centered([size2[0] - 8, size2[0] - 8], [0, 0]);
+		linear_extrude(4) projection() import("keycap-stud.stl");
 	}
 }
 diff_key_count = 7;
