@@ -3,8 +3,8 @@ $fn = 100;
 module keycap(size2, center2) {
 	translate([center2[0], center2[1], 0]) {
 		multmatrix(m = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]])
-			linear_extrude(1.5, scale = 0.9) offset(4)
-				square_centered([size2[0] - 8, size2[0] - 8], [0, 0]);
+			linear_extrude(2, scale = 0.95) offset(6)
+				square_centered([size2[0] - 10, size2[0] - 10], [0, 0]);
 		linear_extrude(4) projection() import("keycap-stud.stl");
 	}
 }
@@ -18,12 +18,12 @@ keycap_size = [
 	[3, 2.45, 1.95],
 	[4, 3.95, 5.35]
 ];
-module keycaps() {
+module keycaps(gap) {
 	for (i = [0:diff_key_count - 1]) {
 		for (j = [0:keycap_size[i][0] - 1]) {
 			keycap(
 				[14.05 + (keycap_size[i][1] / 2) - .5, keycap_size[i][2] - .5],
-				[20 * i, 20 * j]);
+				[gap * i, gap * j]);
 		}
 	}
 }
