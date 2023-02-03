@@ -11,7 +11,7 @@ module switch () {
 	square([16, 7.5], center = true);
 }
 module battery() {
-	square([20, 78], center = true);
+	square([24, 82], center = true);
 }
 difference() {
 	union() {
