@@ -1,6 +1,5 @@
 include<config.scad> $fn = 20;
 module top_plate(holes = true, right = false) {
-	echo(-(key_size / 2 + offset));
 	translate([key_size / 2 + offset, -(key_size / 2 + offset), 0]) difference() {
 		offset(offset) union() {
 			holes(true, right);
