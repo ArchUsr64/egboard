@@ -6,8 +6,8 @@ include<config.scad>;
 // clang-format on
 module switch () {
 	d = 19;
-	translate([d / 2, 0, 0]) circle(r = screw_hole_m2);
-	translate([-d / 2, 0, 0]) circle(r = screw_hole_m2);
+	translate([d / 2, 0, 0]) circle(d = screw_hole_m2);
+	translate([-d / 2, 0, 0]) circle(d = screw_hole_m2);
 	square([16, 7.5], center = true);
 }
 module battery() {
