@@ -17,21 +17,28 @@ module oled() {
 			circle(d = screw_hole_m3, $fn = 10);
 	}
 }
-difference() {
-	union() {
-		top_plate(holes = true);
-		offset(offset) translate([offset, -channel_height + offset, 0])
-			square([length - 2 * offset, channel_height - 2 * offset]);
-	}
-	//Get holes for the top_plate
+module left_top_plate(holes = true) {
 	difference() {
-		top_plate(holes = false);
-		top_plate(holes = true);
-	}
-	translate([126, -40, 0]) oled();
-	translate([126, -73, 0]) led_bar();
-	for (i = [0:1]) {
-		translate([length - magnet_boundary_offset - magnet_hole_thicknes, magnet_hole_posY[i], 0])
-			magnet();
+		union() {
+			top_plate(holes = false);
+			offset(offset) translate([offset, -channel_height + offset, 0])
+				square([length - 2 * offset, channel_height - 2 * offset]);
+		}
+		if (holes) {
+			//Get holes for the top_plate
+			difference() {
+				top_plate(holes = false);
+				top_plate(holes = true);
+			}
+			translate([126, -40, 0]) oled();
+			translate([126, -73, 0]) led_bar();
+			for (i = [0:1]) {
+				translate([
+					length - magnet_boundary_offset - magnet_hole_thicknes,
+					magnet_hole_posY[i],
+					0
+				]) magnet();
+			}
+		}
 	}
 }
