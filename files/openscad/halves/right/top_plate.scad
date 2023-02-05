@@ -11,7 +11,7 @@ module switch () {
 	square([16, 7.5], center = true);
 }
 module battery() {
-	square([24, 82], center = true);
+	square([20, 78], center = true);
 }
 module right_top_plate(holes = true) {
 	difference() {
@@ -33,7 +33,6 @@ module right_top_plate(holes = true) {
 			//Magnet holes
 			for (i = [0:1]) {
 				translate([-length + magnet_boundary_offset, magnet_hole_posY[i], 0])
-					magnet();
 					magnet(magnet_top_plate_channel_width);
 			}
 			//Screw holes
