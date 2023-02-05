@@ -37,7 +37,8 @@ module left_top_plate(holes = true) {
 					length - magnet_boundary_offset - magnet_hole_thicknes,
 					magnet_hole_posY[i],
 					0
-				]) magnet();
+				]) magnet(magnet_top_plate_channel_width);
+			}
 			//Screw holes
 			for (i = [0:len(hole_pos) - 1]) {
 				translate([hole_pos[i][0], hole_pos[i][1], 0])

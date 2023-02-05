@@ -30,10 +30,13 @@ module right_top_plate(holes = true) {
 			translate([battery_position[0], battery_position[1], 0]) battery();
 			translate([-50, -63 - 19.525, 0]) switch ();
 			translate([-122, -51, 0]) logo(scale = 0.8);
+			//Magnet holes
 			for (i = [0:1]) {
 				translate([-length + magnet_boundary_offset, magnet_hole_posY[i], 0])
 					magnet();
+					magnet(magnet_top_plate_channel_width);
 			}
+			//Screw holes
 			for (i = [0:len(hole_pos) - 1]) {
 				translate([hole_pos[i][0], hole_pos[i][1], 0])
 					circle(d = screw_hole_m3);
