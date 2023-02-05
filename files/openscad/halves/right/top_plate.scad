@@ -27,7 +27,7 @@ module right_top_plate(holes = true) {
 				top_plate(holes = false, right = true);
 				top_plate(holes = true, right = true);
 			}
-			translate([5, -50, 0]) battery();
+			translate([battery_position[0], battery_position[1], 0]) battery();
 			translate([-50, -63 - 19.525, 0]) switch ();
 			translate([-122, -51, 0]) logo(scale = 0.8);
 			for (i = [0:1]) {
