@@ -38,6 +38,10 @@ module left_top_plate(holes = true) {
 					magnet_hole_posY[i],
 					0
 				]) magnet();
+			//Screw holes
+			for (i = [0:len(hole_pos) - 1]) {
+				translate([hole_pos[i][0], hole_pos[i][1], 0])
+					circle(d = screw_hole_m3);
 			}
 		}
 	}
