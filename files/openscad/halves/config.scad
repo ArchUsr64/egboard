@@ -1,7 +1,12 @@
-offset = 5;
+//Middle layers
+outer_offset = 2;
+inner_offset = -7;
 
-channel_height = 105;
+//Roundedness
+offset = 8;
+channel_height = 107;
 
+standoff_size = 9;
 screw_hole_m3 = 3.5;
 screw_hole_m2 = 2.5;
 
