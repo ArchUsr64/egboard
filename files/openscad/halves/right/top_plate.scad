@@ -43,3 +43,4 @@ module right_top_plate(holes = true) {
 		}
 	}
 }
+right_top_plate();

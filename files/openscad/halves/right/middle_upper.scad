@@ -19,3 +19,4 @@ module right_middle_upper() {
 		}
 	}
 }
+right_middle_upper();
