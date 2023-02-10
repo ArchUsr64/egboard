@@ -13,7 +13,7 @@ screw_hole_m2 = 2.5;
 //Vertical 20x2 magnet holes
 magnet_hole_posY = [-20, -87];
 magnet_boundary_offset = 0;
-magnet_hole_thicknes = 2.1;
+magnet_hole_thicknes = 2.05;
 magnet_top_plate_channel_width = 12.2;
 magnet_upper_middle_plate_channel_width = 20.1;
 magnet_lower_middle_plate_channel_width = 19.7;
