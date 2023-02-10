@@ -60,3 +60,11 @@ module sliding_channel_add(channel_length, holes = true) {
 				center = true);
 	}
 }
+module slider() {
+	offset(sliding_channel_roundedness) square(
+		[
+			sliding_channel_full_length - 2 * sliding_channel_roundedness,
+			sliding_channel_width - 2 * sliding_channel_roundedness,
+		],
+		center = true);
+}
