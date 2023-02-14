@@ -68,3 +68,15 @@ module slider() {
 		],
 		center = true);
 }
+module slider_cover(length) {
+	difference() {
+		sliding_channel_add(length, holes = false);
+		translate([(outer_offset - inner_offset) / 2, 0, 0]) square(
+			[
+				outer_offset - inner_offset,
+				sliding_channel_width + 2 *
+				sliding_channel_wall_thickness
+			],
+			center = true);
+	}
+}
