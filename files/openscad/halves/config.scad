@@ -24,6 +24,9 @@ module magnet(channel_width) {
 }
 
 //Sliding channel
+sliding_channel_magnet_offset = 25;
+sliding_channel_magnet_d = 10;
+sliding_channel_cover_magnet_d = 20;
 sliding_channel_roundedness = 5;
 sliding_channel_wall_thickness = 7;
 sliding_channel_posY = (magnet_hole_posY[0] + magnet_hole_posY[1]) / 2;
@@ -61,14 +64,19 @@ module sliding_channel_add(channel_length, holes = true) {
 	}
 }
 module slider() {
-	offset(sliding_channel_roundedness) square(
-		[
-			sliding_channel_full_length - 2 * sliding_channel_roundedness,
-			sliding_channel_width - 2 * sliding_channel_roundedness,
-		],
-		center = true);
+	difference() {
+		offset(sliding_channel_roundedness) square(
+			[
+				sliding_channel_full_length - 2 * sliding_channel_roundedness,
+				sliding_channel_width - 2 * sliding_channel_roundedness,
+			],
+			center = true);
+		mirror([1, 0, 0]) translate(
+			[-sliding_channel_full_length / 2 + sliding_channel_magnet_offset, 0, 0])
+			circle(d = sliding_channel_magnet_d);
+	}
 }
-module slider_cover(length) {
+module slider_cover(length, left = false) {
 	difference() {
 		sliding_channel_add(length, holes = false);
 		translate([(outer_offset - inner_offset) / 2, 0, 0]) square(
@@ -78,5 +86,15 @@ module slider_cover(length) {
 				sliding_channel_wall_thickness
 			],
 			center = true);
+		if (left) {
+			translate([sliding_channel_magnet_offset, 0, 0])
+				circle(d = sliding_channel_cover_magnet_d);
+		} else {
+			translate([
+				length - sliding_channel_magnet_offset,
+				0,
+				0
+			]) circle(d = sliding_channel_cover_magnet_d);
+		}
 	}
 }
