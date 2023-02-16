@@ -90,11 +90,8 @@ module slider_cover(length, left = false) {
 			translate([sliding_channel_magnet_offset, 0, 0])
 				circle(d = sliding_channel_cover_magnet_d);
 		} else {
-			translate([
-				length - sliding_channel_magnet_offset,
-				0,
-				0
-			]) circle(d = sliding_channel_cover_magnet_d);
+			translate([length - sliding_channel_magnet_offset, 0, 0])
+				circle(d = sliding_channel_cover_magnet_d);
 		}
 	}
 }
