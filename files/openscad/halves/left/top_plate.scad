@@ -32,6 +32,7 @@ module left_top_plate(holes = true) {
 			}
 			translate([126, -40, 0]) oled();
 			translate([126, -73, 0]) led_bar();
+			//Magnet holes
 			for (i = [0:1]) {
 				translate([
 					length - magnet_boundary_offset - magnet_hole_thicknes,
