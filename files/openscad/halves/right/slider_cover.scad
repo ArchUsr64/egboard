@@ -1,4 +1,6 @@
 // clang-format off
 include<../config.scad>;
 // clang-format on
-slider_cover(sliding_channel_extension);
+module right_slider_cover() {
+	slider_cover(sliding_channel_extension);
+}
