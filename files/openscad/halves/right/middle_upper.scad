@@ -5,9 +5,16 @@ include<config.scad>;
 // clang-format on
 module right_middle_upper() {
 	difference() {
-		difference() {
-			offset(outer_offset) right_top_plate(holes = false);
-			offset(inner_offset) right_top_plate(holes = false);
+		union() {
+			difference() {
+				offset(outer_offset) right_top_plate(holes = false);
+				offset(inner_offset) right_top_plate(holes = false);
+			}
+			//Standoff supports
+			for (i = [0:len(hole_pos) - 1]) {
+				translate([hole_pos[i][0], hole_pos[i][1], 0])
+					circle(d = 2 * standoff_size, $fn = 6);
+			}
 		}
 		//Magnet slit
 		for (i = [0:1]) {
