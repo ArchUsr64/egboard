@@ -10,3 +10,8 @@
 
 /target
 /**/target
+
+# Hide all build files
+*.stl
+*.dxf
+*.pdf
