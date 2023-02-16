@@ -1,3 +1,7 @@
+//Zip tie dimensions
+zip_tie_thickness = 1;
+zip_tie_width = 3;
+
 //Middle layers
 outer_offset = 2;
 inner_offset = -7;
