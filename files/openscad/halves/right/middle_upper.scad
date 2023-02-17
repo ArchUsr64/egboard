@@ -26,6 +26,8 @@ module right_middle_upper() {
 			translate([hole_pos[i][0], hole_pos[i][1], 0])
 				circle(d = standoff_size, $fn = 6);
 		}
+		//Barrel Jack
+		translate([barrel_jack_pos[0], barrel_jack_pos[1], 0]) barrel_connector();
 	}
 }
 right_middle_upper();

@@ -48,6 +48,8 @@ module right_bottom() {
 		translate([pcb_position, sliding_channel_posY, 0]) pcb_holes();
 		//Type A holes
 		translate([type_a_pos[0], type_a_pos[1], 0]) type_a_screw_holes();
+		//Barrel Jack
+		translate([barrel_jack_pos[0], barrel_jack_pos[1], 0]) barrel_jack_pcb_screw_holes();
 	}
 }
 right_bottom();

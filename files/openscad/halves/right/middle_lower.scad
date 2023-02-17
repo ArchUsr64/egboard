@@ -46,6 +46,8 @@ module right_middle_lower() {
 		}
 		//Type A holes
 		translate([type_a_pos[0], type_a_pos[1], 0]) type_a();
+		//Barrel Jack
+		translate([barrel_jack_pos[0], barrel_jack_pos[1], 0]) barrel_jack_pcb();
 	}
 }
 right_middle_lower();
