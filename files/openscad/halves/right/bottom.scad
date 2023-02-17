@@ -32,7 +32,7 @@ module right_bottom() {
 			translate([slider_wall_hole[i][0], slider_wall_hole[i][1], 0])
 				circle(d = screw_hole_m3);
 		}
-		translate([battery_position[0], battery_position[1], 0]) battery_holes();
+		translate([battery_position, sliding_channel_posY, 0]) battery_holes();
 	}
 }
 right_bottom();
