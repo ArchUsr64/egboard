@@ -20,6 +20,16 @@ module battery_holes() {
 	translate([0, holes_offset / 2, 0]) hole();
 }
 
+module pcb_holes() {
+	x_offset = 37.9;
+	y_offset = [5.35, -17.9];
+	pos = [y_offset[0], y_offset[1], -y_offset[0], -y_offset[1]];
+	for (i = [0:1]) {
+		translate([-x_offset / 2, pos[i], 0]) circle(d = screw_hole_m3);
+		translate([x_offset / 2, pos[i], 0]) circle(d = screw_hole_m3);
+	}
+}
+
 module right_bottom() {
 	difference() {
 		right_top_plate(holes = false);
@@ -32,7 +42,10 @@ module right_bottom() {
 			translate([slider_wall_hole[i][0], slider_wall_hole[i][1], 0])
 				circle(d = screw_hole_m3);
 		}
+		//Battery zip tie holes
 		translate([battery_position, sliding_channel_posY, 0]) battery_holes();
+		//PCB holes
+		translate([pcb_position, sliding_channel_posY, 0]) pcb_holes();
 	}
 }
 right_bottom();
