@@ -9,6 +9,10 @@ module sliding_channel(holes = true) {
 		sliding_channel_add(sliding_channel_full_length, holes);
 }
 
+module type_c() {
+	square(type_c_size, center = true);
+	translate([0, type_c_size[1] / 2, 0]) square([18, 10], center = true);
+}
 module left_middle_lower() {
 	difference() {
 		union() {
@@ -47,6 +51,8 @@ module left_middle_lower() {
 			translate([slider_wall_hole[i][0], slider_wall_hole[i][1], 0])
 				circle(d = screw_hole_m3);
 		}
+		//Type C hole
+		translate([type_c_pos[0], type_c_pos[1], 0]) color([1, 0, 0, .5]) type_c();
 	}
 }
 left_middle_lower();

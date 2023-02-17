@@ -16,6 +16,14 @@ module pi_pico() {
 		translate([holes[i][0], holes[i][1], 0]) circle(d = screw_hole_m2);
 	}
 }
+module type_c() {
+	x_offset = 32.74;
+	y_offset = 4.6;
+	translate([-x_offset / 2, type_c_size[1] / 2 - y_offset, 0])
+		circle(d = screw_hole_m2);
+	translate([x_offset / 2, type_c_size[1] / 2 - y_offset, 0])
+		circle(d = screw_hole_m2);
+}
 module left_bottom() {
 	difference() {
 		left_top_plate(holes = false);
@@ -33,6 +41,7 @@ module left_bottom() {
 			hooker_channel(sliding_channel_extension);
 		//Pico holes
 		translate([27, sliding_channel_posY, 0]) pi_pico();
+		translate([type_c_pos[0], type_c_pos[1], 0]) type_c();
 	}
 }
 left_bottom();
