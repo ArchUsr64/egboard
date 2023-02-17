@@ -28,6 +28,18 @@ module magnet(channel_width) {
 		square([magnet_hole_thicknes, channel_width], center = true);
 }
 
+//Type A
+module type_a() {
+	translate([0, 11.28, 0]) square([14.5, 5.45], center = true);
+	square([16.81, 17.11], center = true);
+}
+module type_a_screw_holes() {
+	x_offset = 11.82;
+	y_offset = -2.755;
+	translate([x_offset/2, y_offset, 0]) circle(d = screw_hole_m3);
+	translate([-x_offset/2, y_offset, 0]) circle(d = screw_hole_m3);
+}
+
 //Sliding channel
 sliding_channel_magnet_offset = 25;
 sliding_channel_magnet_d = 10;

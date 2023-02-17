@@ -41,7 +41,10 @@ module left_bottom() {
 			hooker_channel(sliding_channel_extension);
 		//Pico holes
 		translate([27, sliding_channel_posY, 0]) pi_pico();
+		//Type C holes
 		translate([type_c_pos[0], type_c_pos[1], 0]) type_c();
+		//Type A holes
+		translate([type_a_pos[0], type_a_pos[1], 0]) type_a_screw_holes();
 	}
 }
 left_bottom();

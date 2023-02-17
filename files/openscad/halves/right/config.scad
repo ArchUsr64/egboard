@@ -13,3 +13,5 @@ hole_pos = [[-20, -7], [-20, -100], [-87, -100], [-122, -7]];
 battery_position = 3;
 
 pcb_position = -47;
+
+type_a_pos = [-100, -12];

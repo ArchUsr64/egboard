@@ -52,7 +52,9 @@ module left_middle_lower() {
 				circle(d = screw_hole_m3);
 		}
 		//Type C hole
-		translate([type_c_pos[0], type_c_pos[1], 0]) color([1, 0, 0, .5]) type_c();
+		translate([type_c_pos[0], type_c_pos[1], 0]) type_c();
+		//Type A hole
+		translate([type_a_pos[0], type_a_pos[1], 0]) type_a();
 	}
 }
 left_middle_lower();

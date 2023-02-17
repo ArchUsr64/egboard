@@ -46,6 +46,8 @@ module right_bottom() {
 		translate([battery_position, sliding_channel_posY, 0]) battery_holes();
 		//PCB holes
 		translate([pcb_position, sliding_channel_posY, 0]) pcb_holes();
+		//Type A holes
+		translate([type_a_pos[0], type_a_pos[1], 0]) type_a_screw_holes();
 	}
 }
 right_bottom();

@@ -44,6 +44,8 @@ module right_middle_lower() {
 			translate([slider_wall_hole[i][0], slider_wall_hole[i][1], 0])
 				circle(d = screw_hole_m3);
 		}
+		//Type A holes
+		translate([type_a_pos[0], type_a_pos[1], 0]) type_a();
 	}
 }
 right_middle_lower();
