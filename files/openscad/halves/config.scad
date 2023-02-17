@@ -11,7 +11,7 @@ offset = 8;
 channel_height = 107;
 
 //Screw size
-standoff_size = 9;
+standoff_size = 5.6;
 screw_hole_m3 = 3.5;
 screw_hole_m2 = 2.5;
 
@@ -36,8 +36,8 @@ sliding_channel_roundedness = 5;
 sliding_channel_wall_thickness = 10;
 sliding_channel_posY = (magnet_hole_posY[0] + magnet_hole_posY[1]) / 2;
 sliding_channel_width = 40;
-sliding_channel_full_length = 120;
-sliding_channel_extension = 60;
+sliding_channel_full_length = 100;
+sliding_channel_extension = 50;
 
 module sliding_channel_add(channel_length, holes = true) {
 	module insertion() {

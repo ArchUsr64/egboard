@@ -5,7 +5,7 @@ length = 140;
 extension = 25;
 
 //Sliding channel holes
-slider_wall_hole = [[-122, -28.5], [-122, -78.5], [-77, -53.5]];
+slider_wall_hole = [[-122, -28.5], [-122, -78.5], [-87, -53.5]];
 
 //Standoff holes
 hole_pos = [[-20, -7], [-20, -100], [-77, -100], [-122, -7]];

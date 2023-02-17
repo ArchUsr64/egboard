@@ -24,8 +24,8 @@ module hooker(holes = true) {
 		if (holes) {
 			scale = 0.8;
 			//Eyes
-			color([1, 0, 0, 0.5]) translate([1.6, 1.6, 0]) rotate(90)
-				scale([scale, scale, 1]) rounded_square([5, 2]);
+			translate([1.6, 1.6, 0]) rotate(90) scale([scale, scale, 1])
+				rounded_square([5, 2]);
 		}
 	}
 }
