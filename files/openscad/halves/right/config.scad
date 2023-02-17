@@ -1,8 +1,8 @@
 // clang-format off
-include <../config.scad>
-	// clang-format on
-	//Entire halve length excluding offsets
-	length = 140;
+include <../config.scad>;
+// clang-format on
+//Entire halve length excluding offsets
+length = 140;
 
 //Extension length for accommodating the battery
 extension = 25;
@@ -18,6 +18,8 @@ battery_position = 3;
 pcb_position = -47;
 
 type_a_pos = [-100, -12];
+
+logo_scale = 0.8;
 
 //Barrel Jack
 barrel_jack_pos = [-70, -10.5];
