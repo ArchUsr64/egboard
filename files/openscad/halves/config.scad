@@ -1,6 +1,6 @@
 //Zip tie dimensions
-zip_tie_thickness = 1;
-zip_tie_width = 3;
+zip_tie_thickness = 2;
+zip_tie_width = 3.5;
 
 //Middle layers
 outer_offset = 2;
@@ -11,7 +11,7 @@ offset = 8;
 channel_height = 107;
 
 //Screw size
-standoff_size = 5.6;
+standoff_size = 6;
 screw_hole_m3 = 3.5;
 screw_hole_m2 = 2.5;
 
@@ -19,10 +19,10 @@ screw_hole_m2 = 2.5;
 magnet_hole_posY = [-20, -87];
 magnet_boundary_offset = 0;
 magnet_hole_thicknes = 2.05;
-magnet_top_plate_channel_width = 12.2;
+magnet_top_plate_channel_width = 0;
 magnet_upper_middle_plate_channel_width = 20.1;
-magnet_lower_middle_plate_channel_width = 19.7;
-magnet_bottom_plate_channel_width = 12.2;
+magnet_lower_middle_plate_channel_width = 20.1;
+magnet_bottom_plate_channel_width = 0;
 module magnet(channel_width) {
 	translate([magnet_hole_thicknes / 2, 0, 0])
 		square([magnet_hole_thicknes, channel_width], center = true);
@@ -42,8 +42,8 @@ module type_a_screw_holes() {
 
 //Sliding channel
 sliding_channel_magnet_offset = 25;
-sliding_channel_magnet_d = 10;
-sliding_channel_cover_magnet_d = 20;
+sliding_channel_magnet_d = 12;
+sliding_channel_cover_magnet_d = 10;
 sliding_channel_roundedness = 5;
 sliding_channel_wall_thickness = 10;
 sliding_channel_posY = (magnet_hole_posY[0] + magnet_hole_posY[1]) / 2;

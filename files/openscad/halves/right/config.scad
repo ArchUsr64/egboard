@@ -36,3 +36,7 @@ module barrel_jack_pcb_screw_holes() {
 		translate([pos[i][0], pos[i][1], 0]) circle(d = screw_hole_m3);
 	}
 }
+module barrel_connector_support() {
+	translate([-4.2 - 9.1 / 2, 25.3 / 2 - 22.4 / 2, 0])
+		square([19.1, 20.4], center = true);
+}

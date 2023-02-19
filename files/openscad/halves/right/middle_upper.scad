@@ -15,6 +15,8 @@ module right_middle_upper() {
 				translate([hole_pos[i][0], hole_pos[i][1], 0])
 					circle(d = 2 * standoff_size, $fn = 6);
 			}
+		//Barrel Jack supports
+		translate([barrel_jack_pos[0], barrel_jack_pos[1], 0]) barrel_connector_support();
 		}
 		//Magnet slit
 		for (i = [0:1]) {

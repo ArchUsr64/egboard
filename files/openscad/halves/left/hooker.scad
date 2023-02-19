@@ -22,9 +22,9 @@ module hooker(holes = true) {
 				square([3.4 - 2 * o, 8 - 2 * o], center = true);
 		}
 		if (holes) {
-			scale = 0.8;
+			scale = 0.7;
 			//Eyes
-			translate([1.6, 1.6, 0]) rotate(90) scale([scale, scale, 1])
+			translate([1.0, 1.7, 0]) rotate(90) scale([scale, scale, 1])
 				rounded_square([5, 2]);
 		}
 	}
