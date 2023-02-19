@@ -28,6 +28,9 @@ module right_middle_lower(upper = false) {
 				translate([hole_pos[i][0], hole_pos[i][1], 0])
 					circle(d = 2 * standoff_size, $fn = 6);
 			}
+			//Slidng channel supports
+			translate([-87, -90, 0]) square([5, 35], center = true);
+			translate([-87, -17, 0]) square([5, 35], center = true);
 			if (upper) {
 				translate([barrel_jack_pos[0], barrel_jack_pos[1], 0])
 					barrel_connector_support();

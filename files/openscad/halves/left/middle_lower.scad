@@ -34,6 +34,10 @@ module left_middle_lower(upper = false) {
 				translate([hole_pos[i][0], hole_pos[i][1], 0])
 					circle(d = 2 * standoff_size, $fn = 6);
 			}
+			//Slidng channel supports
+			translate([53, -90, 0]) square([5, 35], center = true);
+			translate([53, -17, 0]) square([5, 35], center = true);
+			translate([94, -17, 0]) square([5, 32], center = true);
 		}
 		//Magnet slits
 		for (i = [0:1]) {
