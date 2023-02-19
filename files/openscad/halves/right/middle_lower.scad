@@ -9,7 +9,7 @@ module sliding_channel(holes = true) {
 		sliding_channel_add(sliding_channel_extension, holes);
 }
 
-module right_middle_lower() {
+module right_middle_lower(upper = false) {
 	difference() {
 		union() {
 			sliding_channel();
@@ -28,6 +28,10 @@ module right_middle_lower() {
 				translate([hole_pos[i][0], hole_pos[i][1], 0])
 					circle(d = 2 * standoff_size, $fn = 6);
 			}
+			if (upper) {
+				translate([barrel_jack_pos[0], barrel_jack_pos[1], 0])
+					barrel_connector_support();
+			}
 		}
 		//Magnet slits
 		for (i = [0:1]) {
@@ -45,9 +49,13 @@ module right_middle_lower() {
 				circle(d = screw_hole_m3);
 		}
 		//Type A holes
-		translate([type_a_pos[0], type_a_pos[1], 0]) type_a();
+		translate([type_a_pos[0], type_a_pos[1], 0]) type_a(upper);
 		//Barrel Jack
-		translate([barrel_jack_pos[0], barrel_jack_pos[1], 0]) barrel_jack_pcb();
+		if (upper) {
+			translate([barrel_jack_pos[0], barrel_jack_pos[1], 0]) barrel_connector();
+		} else {
+			translate([barrel_jack_pos[0], barrel_jack_pos[1], 0]) barrel_connector();
+		}
 	}
 }
 right_middle_lower();

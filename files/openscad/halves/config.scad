@@ -29,15 +29,17 @@ module magnet(channel_width) {
 }
 
 //Type A
-module type_a() {
+module type_a(upper) {
+	if (!upper) {
+		square([16.81, 17.11], center = true);
+	}
 	translate([0, 11.28, 0]) square([14.5, 5.45], center = true);
-	square([16.81, 17.11], center = true);
 }
 module type_a_screw_holes() {
 	x_offset = 11.82;
 	y_offset = -2.755;
-	translate([x_offset/2, y_offset, 0]) circle(d = screw_hole_m3);
-	translate([-x_offset/2, y_offset, 0]) circle(d = screw_hole_m3);
+	translate([x_offset / 2, y_offset, 0]) circle(d = screw_hole_m3);
+	translate([-x_offset / 2, y_offset, 0]) circle(d = screw_hole_m3);
 }
 
 //Sliding channel

@@ -9,11 +9,13 @@ module sliding_channel(holes = true) {
 		sliding_channel_add(sliding_channel_full_length, holes);
 }
 
-module type_c() {
-	square(type_c_size, center = true);
-	translate([0, type_c_size[1] / 2, 0]) square([18, 10], center = true);
+module type_c(upper) {
+	if (!upper) {
+		square(type_c_size, center = true);
+	}
+	translate([0, type_c_size[1] / 2, 0]) square([18, 12], center = true);
 }
-module left_middle_lower() {
+module left_middle_lower(upper = false) {
 	difference() {
 		union() {
 			sliding_channel();
@@ -52,9 +54,9 @@ module left_middle_lower() {
 				circle(d = screw_hole_m3);
 		}
 		//Type C hole
-		translate([type_c_pos[0], type_c_pos[1], 0]) type_c();
+		translate([type_c_pos[0], type_c_pos[1], 0]) type_c(upper);
 		//Type A hole
-		translate([type_a_pos[0], type_a_pos[1], 0]) type_a();
+		translate([type_a_pos[0], type_a_pos[1], 0]) type_a(upper);
 	}
 }
 left_middle_lower();

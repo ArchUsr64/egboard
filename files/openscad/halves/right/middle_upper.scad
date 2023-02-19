@@ -3,7 +3,7 @@ use<top_plate.scad>
 include<../config.scad>
 include<config.scad>;
 // clang-format on
-module right_middle_upper() {
+module right_middle_upper(upper = false) {
 	difference() {
 		union() {
 			difference() {
@@ -15,8 +15,11 @@ module right_middle_upper() {
 				translate([hole_pos[i][0], hole_pos[i][1], 0])
 					circle(d = 2 * standoff_size, $fn = 6);
 			}
-		//Barrel Jack supports
-		translate([barrel_jack_pos[0], barrel_jack_pos[1], 0]) barrel_connector_support();
+			if (!upper) {
+				//Barrel Jack supports
+				translate([barrel_jack_pos[0], barrel_jack_pos[1], 0])
+					barrel_connector_support();
+			}
 		}
 		//Magnet slit
 		for (i = [0:1]) {
@@ -28,8 +31,10 @@ module right_middle_upper() {
 			translate([hole_pos[i][0], hole_pos[i][1], 0])
 				circle(d = standoff_size, $fn = 6);
 		}
-		//Barrel Jack
-		translate([barrel_jack_pos[0], barrel_jack_pos[1], 0]) barrel_connector();
+		if (!upper) {
+			//Barrel Jack
+			translate([barrel_jack_pos[0], barrel_jack_pos[1], 0]) barrel_connector();
+		}
 	}
 }
 right_middle_upper();
