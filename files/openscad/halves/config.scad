@@ -1,3 +1,5 @@
+hooker_screw_hole_offsetY = -3;
+
 //Zip tie dimensions
 zip_tie_thickness = 2;
 zip_tie_width = 3.5;
@@ -95,6 +97,7 @@ module slider() {
 		mirror([1, 0, 0]) translate(
 			[-sliding_channel_full_length / 2 + sliding_channel_magnet_offset, 0, 0])
 			circle(d = sliding_channel_magnet_d);
+		translate([4 - hooker_screw_hole_offsetY - sliding_channel_extension, 0, 0]) circle(d = screw_hole_m3);
 	}
 }
 

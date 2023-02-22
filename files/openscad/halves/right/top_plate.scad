@@ -25,7 +25,7 @@ module right_top_plate(holes = true) {
 				top_plate(holes = true, right = true);
 			}
 			translate([-50, -63 - 19.525, 0]) switch ();
-			translate([-120, -51, 0]) logo(logo_scale);
+			translate([-120, -40, 0]) logo(logo_scale);
 			//Magnet holes
 			for (i = [0:1]) {
 				translate([-length + magnet_boundary_offset, magnet_hole_posY[i], 0])

@@ -47,6 +47,5 @@ module left_bottom() {
 		translate([type_a_pos[0], type_a_pos[1], 0]) type_a_screw_holes();
 	}
 }
-$fn = 40;
 left_bottom();
 hooker(holes = true);

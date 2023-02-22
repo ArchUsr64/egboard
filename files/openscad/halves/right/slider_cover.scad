@@ -4,7 +4,7 @@ include<config.scad>;
 // clang-format on
 module right_slider_cover() {
 	difference() {
-		translate([-length - outer_offset, sliding_channel_posY])
+		translate([-length - outer_offset, sliding_channel_pos[1]])
 			slider_cover(sliding_channel_extension);
 		//Magnet holes
 		for (i = [0:len(slider_wall_hole) - 1]) {

@@ -13,8 +13,11 @@ module left_slider_cover() {
 		}
 		//Slider nut channel
 		nut_d = 3.6;
-		translate([sliding_channel_pos[0] + hooker_screw_hole_offsetY, sliding_channel_pos[1], 0])
-			square([sliding_channel_extension + nut_d, nut_d], center = true);
+		translate([
+			sliding_channel_pos[0] + hooker_screw_hole_offsetY / 2,
+			sliding_channel_pos[1],
+			0
+		]) square([sliding_channel_extension + nut_d, nut_d], center = true);
 	}
 }
 left_slider_cover();

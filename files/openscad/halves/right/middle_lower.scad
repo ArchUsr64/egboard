@@ -5,7 +5,7 @@ include<config.scad>;
 // clang-format on
 
 module sliding_channel(holes = true) {
-	translate([-length - outer_offset, sliding_channel_posY])
+	translate([-length - outer_offset, sliding_channel_pos[1]])
 		sliding_channel_add(sliding_channel_extension, holes);
 }
 
@@ -30,7 +30,7 @@ module right_middle_lower(upper = false) {
 			}
 			//Slidng channel supports
 			translate([-87, -90, 0]) square([5, 35], center = true);
-			translate([-87, -17, 0]) square([5, 35], center = true);
+			translate([-90, -17, 0]) square([5, 35], center = true);
 			if (upper) {
 				translate([barrel_jack_pos[0], barrel_jack_pos[1], 0])
 					barrel_connector_support();
@@ -57,7 +57,7 @@ module right_middle_lower(upper = false) {
 		if (upper) {
 			translate([barrel_jack_pos[0], barrel_jack_pos[1], 0]) barrel_connector();
 		} else {
-			translate([barrel_jack_pos[0], barrel_jack_pos[1], 0]) barrel_connector();
+			translate([barrel_jack_pos[0], barrel_jack_pos[1], 0]) barrel_jack_pcb();
 		}
 	}
 }

@@ -43,9 +43,9 @@ module right_bottom() {
 				circle(d = screw_hole_m3);
 		}
 		//Battery zip tie holes
-		translate([battery_position, sliding_channel_posY, 0]) battery_holes();
+		translate([battery_position, sliding_channel_pos[1], 0]) battery_holes();
 		//PCB holes
-		translate([pcb_position, sliding_channel_posY, 0]) pcb_holes();
+		translate([pcb_position, sliding_channel_pos[1], 0]) pcb_holes();
 		//Type A holes
 		translate([type_a_pos[0], type_a_pos[1], 0]) type_a_screw_holes();
 		//Barrel Jack

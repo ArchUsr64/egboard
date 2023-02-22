@@ -10,6 +10,4 @@ slider_wall_hole = [[140, -28.5], [70, -28.5], [70, -78.5], [140, -78.5]];
 type_c_pos = [110, -14];
 type_c_size = [40, 25.5];
 
-type_a_pos = [80, -12];
-
-hooker_screw_hole_offsetY = -3;
+type_a_pos = [70, -12];

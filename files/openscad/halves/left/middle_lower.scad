@@ -5,7 +5,7 @@ include<config.scad>;
 // clang-format on
 
 module sliding_channel(holes = true) {
-	translate([length + outer_offset, sliding_channel_posY, 0]) mirror([1, 0, 0])
+	translate([length + outer_offset, sliding_channel_pos[1], 0]) mirror([1, 0, 0])
 		sliding_channel_add(sliding_channel_full_length, holes);
 }
 
@@ -37,7 +37,7 @@ module left_middle_lower(upper = false) {
 			//Slidng channel supports
 			translate([53, -90, 0]) square([5, 35], center = true);
 			translate([53, -17, 0]) square([5, 35], center = true);
-			translate([94, -17, 0]) square([5, 32], center = true);
+			translate([89, -17, 0]) square([5, 32], center = true);
 		}
 		//Magnet slits
 		for (i = [0:1]) {

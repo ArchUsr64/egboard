@@ -19,7 +19,7 @@ pcb_position = -47;
 
 type_a_pos = [-100, -12];
 
-logo_scale = 1.0;
+logo_scale = 0.9;
 
 //Barrel Jack
 barrel_jack_pos = [-70, -10.5];
