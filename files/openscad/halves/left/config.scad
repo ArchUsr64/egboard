@@ -11,3 +11,5 @@ type_c_pos = [110, -14];
 type_c_size = [40, 25.5];
 
 type_a_pos = [80, -12];
+
+hooker_screw_hole_offsetY = -3;

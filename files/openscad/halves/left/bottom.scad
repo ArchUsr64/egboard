@@ -37,14 +37,16 @@ module left_bottom() {
 				circle(d = screw_hole_m3);
 		}
 		//Sliding hooker channel
-		translate([110, sliding_channel_posY, 0]) rotate(-90)
+		translate([sliding_channel_pos[0], sliding_channel_pos[1], 0]) rotate(-90)
 			hooker_channel(sliding_channel_extension);
 		//Pico holes
-		translate([27, sliding_channel_posY, 0]) pi_pico();
+		translate([27, sliding_channel_pos[1], 0]) pi_pico();
 		//Type C holes
 		translate([type_c_pos[0], type_c_pos[1], 0]) type_c();
 		//Type A holes
 		translate([type_a_pos[0], type_a_pos[1], 0]) type_a_screw_holes();
 	}
 }
+$fn = 40;
 left_bottom();
+hooker(holes = true);

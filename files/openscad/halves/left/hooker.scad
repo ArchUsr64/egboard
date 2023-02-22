@@ -1,4 +1,7 @@
-module rounded_square(size) {
+// clang-format off
+include <config.scad>
+	// clang-format on
+	module rounded_square(size) {
 	square(size, center = true);
 	translate([0, size[1] / 2, 0]) circle(d = size[0]);
 	translate([0, -size[1] / 2, 0]) circle(d = size[0]);
@@ -26,6 +29,8 @@ module hooker(holes = true) {
 			//Eyes
 			translate([1.0, 1.7, 0]) rotate(90) scale([scale, scale, 1])
 				rounded_square([5, 2]);
+			//Screw hole
+			translate([0, hooker_screw_hole_offsetY, 0])circle(d = screw_hole_m3);
 		}
 	}
 }
@@ -38,7 +43,7 @@ module hooker_channel(length) {
 	}
 	module hooker_lower() {
 		difference() {
-			hooker();
+			hooker(false);
 			translate([0, 5, 0]) square([20, 10], center = true);
 		}
 	}
