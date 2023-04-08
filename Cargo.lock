@@ -170,6 +170,7 @@ dependencies = [
  "defmt-rtt",
  "embedded-hal",
  "rp-pico",
+ "rp2040-hal 0.8.0",
 ]
 
 [[package]]
@@ -177,6 +178,15 @@ name = "either"
 version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "90e5c1c8368803113bf0c9584fc495a58b86dc8a29edbf8fe877d21d9507e797"
+
+[[package]]
+name = "embedded-dma"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "994f7e5b5cb23521c22304927195f236813053eb9c065dd2226a32ba64695446"
+dependencies = [
+ "stable_deref_trait",
+]
 
 [[package]]
 name = "embedded-hal"
@@ -375,7 +385,7 @@ dependencies = [
  "cortex-m-rt",
  "fugit",
  "rp2040-boot2",
- "rp2040-hal",
+ "rp2040-hal 0.6.0",
  "usb-device",
 ]
 
@@ -405,11 +415,41 @@ dependencies = [
  "paste",
  "pio",
  "rand_core",
- "rp2040-hal-macros",
- "rp2040-pac",
+ "rp2040-hal-macros 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rp2040-pac 0.3.0",
  "usb-device",
  "vcell",
  "void",
+]
+
+[[package]]
+name = "rp2040-hal"
+version = "0.8.0"
+dependencies = [
+ "cortex-m",
+ "critical-section 1.1.1",
+ "embedded-dma",
+ "embedded-hal",
+ "fugit",
+ "itertools",
+ "nb 1.0.0",
+ "paste",
+ "pio",
+ "rand_core",
+ "rp2040-hal-macros 0.1.0",
+ "rp2040-pac 0.4.0",
+ "usb-device",
+ "vcell",
+ "void",
+]
+
+[[package]]
+name = "rp2040-hal-macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -436,6 +476,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "rp2040-pac"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9192cafbb40d717c9e0ddf767aaf9c69fee1b4e48d22ed853b57b11f6d9f3d7e"
+dependencies = [
+ "cortex-m",
+ "vcell",
+]
+
+[[package]]
 name = "rustc_version"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -458,6 +508,12 @@ name = "semver-parser"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
+
+[[package]]
+name = "stable_deref_trait"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 
 [[package]]
 name = "syn"
