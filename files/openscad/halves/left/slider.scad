@@ -1,2 +1,0 @@
-use<../config.scad>;
-slider();
