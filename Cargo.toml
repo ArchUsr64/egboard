@@ -6,13 +6,13 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rp-pico = "0.5.0"
-rp2040-hal = {path = "../rp-hal/rp2040-hal"}
+rp-pico = "0.7.0"
 cortex-m-rt = "0.7.1"
 embedded-hal = "0.2.7"
 cortex-m = "0.7.6"
 defmt = "0.3.2"
 defmt-rtt = "0.4.0"
+usbd-human-interface-device = "0.3.4"
 
 [[bin]]
 name = "egboard"
