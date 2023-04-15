@@ -1,16 +1,11 @@
 #![no_std]
 #![no_main]
 
-mod data_encoder;
-mod get_key_state_macro;
 mod keys_macro;
 mod panic_handler;
 
-type KeyDown = bool;
-
 use defmt::*;
 use defmt_rtt as _;
-use embedded_hal::digital::v2::{InputPin, OutputPin};
 use rp_pico::{entry, hal};
 
 #[entry]
@@ -47,21 +42,31 @@ fn main() -> ! {
 	let mut led = pins.led.into_push_pull_output();
 	led.set_high().unwrap();
 
-	let uart_tx = pins.gpio0.into_mode::<hal::gpio::FunctionUart>();
-	let uart_rx = pins.gpio1.into_mode::<hal::gpio::FunctionUart>();
+	use core::convert::Infallible;
+	use embedded_hal::digital::v2::{InputPin, OutputPin};
 
-	use hal::uart::{common_configs::_9600_8_N_1 as _9600, UartPeripheral};
-	let uart = UartPeripheral::new(pac.UART0, (uart_tx, uart_rx), &mut pac.RESETS)
-		.enable(_9600, clocks.peripheral_clock.freq())
-		.unwrap();
+	let mut col: [&mut dyn OutputPin<Error = Infallible>; 10] =
+		output_keys!(pins, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+	col.iter_mut().for_each(|pin| pin.set_low().unwrap());
+	let row: [&dyn InputPin<Error = Infallible>; 4] = input_keys!(pins, 11, 12, 13, 14);
 
-	let keys =
-		keys!(pins, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22);
-
+	let mut previous_state: u64;
+	let mut state = 0;
 	loop {
-		let key_status: [KeyDown; 21] = get_key_state!(keys);
-		let data = data_encoder::encode(&key_status);
-		uart.write_full_blocking(&[0b10101010]);
-		uart.write_full_blocking(&data);
+		previous_state = state;
+		state = 0;
+		for (i, col_pin) in col.iter_mut().enumerate() {
+			for (j, row_pin) in row.iter().enumerate() {
+				let _ = col_pin.set_high();
+				if row_pin.is_high().unwrap() {
+					state |= 1 << ((j * 10 + i) as u64);
+				}
+				let _ = col_pin.set_low();
+			}
+		}
+		if state != previous_state {
+			println!("{:040b}", state);
+		}
+		delay.delay_ms(50);
 	}
 }
