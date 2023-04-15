@@ -12,7 +12,9 @@ embedded-hal = "0.2.7"
 cortex-m = "0.7.6"
 defmt = "0.3.2"
 defmt-rtt = "0.4.0"
-usbd-human-interface-device = "0.3.4"
+usbd-human-interface-device = { git = "https://github.com/dlkj/usbd-human-interface-device" }
+usb-device = "0.2.9"
+fugit = "0.3.6"
 
 [[bin]]
 name = "egboard"
