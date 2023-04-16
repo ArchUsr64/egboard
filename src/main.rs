@@ -2,8 +2,12 @@
 #![no_main]
 
 mod keys_macro;
+mod keymap;
 mod panic_handler;
+use core::panic;
+use keymap::Keymap;
 
+#[allow(unused_imports)]
 use defmt::*;
 use defmt_rtt as _;
 use rp_pico::{entry, hal};
@@ -13,7 +17,6 @@ use embedded_hal::prelude::*;
 use fugit::ExtU32;
 use usb_device::class_prelude::*;
 use usb_device::prelude::*;
-use usbd_human_interface_device::page::Keyboard;
 use usbd_human_interface_device::prelude::*;
 
 #[entry]
@@ -46,8 +49,6 @@ fn main() -> ! {
 		sio.gpio_bank0,
 		&mut pac.RESETS,
 	);
-	delay.delay_ms(1);
-	info!("Pins initialised");
 	let usb_bus = UsbBusAllocator::new(hal::usb::UsbBus::new(
 		pac.USBCTRL_REGS,
 		pac.USBCTRL_DPRAM,
@@ -79,17 +80,17 @@ fn main() -> ! {
 	col.iter_mut().for_each(|pin| pin.set_low().unwrap());
 	let row: [&dyn InputPin<Error = Infallible>; 4] = input_keys!(pins, 11, 12, 13, 14);
 
-	let mut previous_state: u64;
-	let mut state = 0;
 	let mut input_count_down = timer.count_down();
 	input_count_down.start(10.millis());
 
 	let mut tick_count_down = timer.count_down();
 	tick_count_down.start(1.millis());
 
+	let mut previous_state = !0;
+
+	let keymap = Keymap::default();
 	loop {
-		previous_state = state;
-		state = 0;
+		let mut state = 0;
 		for (i, col_pin) in col.iter_mut().enumerate() {
 			for (j, row_pin) in row.iter().enumerate() {
 				let _ = col_pin.set_high();
@@ -100,19 +101,21 @@ fn main() -> ! {
 				let _ = col_pin.set_low();
 			}
 		}
-		if state != previous_state {
-			println!("{:040b}", state);
-		}
+		let debounced_state = state & previous_state;
+		previous_state = state;
 		//Poll the keys every 10ms
 		if input_count_down.wait().is_ok() {
-			let keys = get_keys(state);
+			// Remove the always unset bit 30 as no key is connected to it
+			let debounced_state_normalised =
+				(debounced_state & 0x3fffffff) | ((debounced_state >> 31) << 30);
+			let key_events= keymap.generate_events(debounced_state_normalised);
 
-			match keyboard.interface().write_report(keys) {
+			match keyboard.interface().write_report(key_events) {
 				Err(UsbHidError::WouldBlock) => {}
 				Err(UsbHidError::Duplicate) => {}
 				Ok(_) => {}
 				Err(e) => {
-					core::panic!("Failed to write keyboard report: {:?}", e)
+					panic!("Failed to write keyboard report: {:?}", e)
 				}
 			};
 		}
@@ -123,7 +126,7 @@ fn main() -> ! {
 				Err(UsbHidError::WouldBlock) => {}
 				Ok(_) => {}
 				Err(e) => {
-					core::panic!("Failed to process keyboard tick: {:?}", e)
+					panic!("Failed to process keyboard tick: {:?}", e)
 				}
 			};
 		}
@@ -134,7 +137,7 @@ fn main() -> ! {
 					//do nothing
 				}
 				Err(e) => {
-					core::panic!("Failed to read keyboard report: {:?}", e)
+					panic!("Failed to read keyboard report: {:?}", e)
 				}
 				Ok(leds) => {
 					led.set_state(PinState::from(leds.num_lock)).ok();
@@ -142,57 +145,4 @@ fn main() -> ! {
 			}
 		}
 	}
-}
-
-fn get_keys(state: u64) -> [Keyboard; 35] {
-	let key_state_i = |index: u64| state & (1 << index) != 0;
-	let bind_key = |index, key_event| {
-		if key_state_i(index) {
-			key_event
-		} else {
-			Keyboard::NoEventIndicated
-		}
-	};
-	use Keyboard::*;
-	[
-		bind_key(0, P),
-		bind_key(1, O),
-		bind_key(2, I),
-		bind_key(3, U),
-		bind_key(4, Y),
-		bind_key(5, T),
-		bind_key(6, R),
-		bind_key(7, E),
-		bind_key(8, W),
-		bind_key(9, Q),
-		bind_key(10, Semicolon),
-		bind_key(11, L),
-		bind_key(12, K),
-		bind_key(13, J),
-		bind_key(14, H),
-		bind_key(15, G),
-		bind_key(16, F),
-		bind_key(17, D),
-		bind_key(18, S),
-		bind_key(19, A),
-		bind_key(20, ForwardSlash),
-		bind_key(21, Dot),
-		bind_key(22, Comma),
-		bind_key(23, M),
-		bind_key(24, N),
-		bind_key(25, B),
-		bind_key(26, V),
-		bind_key(27, C),
-		bind_key(28, X),
-		bind_key(29, Z),
-		bind_key(32, LeftControl),
-		bind_key(34, Space),
-		bind_key(35, LeftShift),
-		if key_state_i(33) && key_state_i(36) {
-			DeleteBackspace
-		} else {
-			NoEventIndicated
-		},
-		bind_key(37, LeftAlt),
-	]
 }
