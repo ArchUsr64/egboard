@@ -63,10 +63,9 @@ fn main() -> ! {
 		.build(&usb_bus);
 
 	//https://pid.codes
-	let mut usb_dev = UsbDeviceBuilder::new(&usb_bus, UsbVidPid(0x1209, 0x0001))
-		.manufacturer("ArchUsr64")
-		.product("egboard")
-		.serial_number("1234")
+	let mut usb_dev = UsbDeviceBuilder::new(&usb_bus, UsbVidPid(0x6969, 0x1234))
+		.manufacturer("Keyboard")
+		.product("Keyboard")
 		.build();
 
 	let mut led = pins.led.into_push_pull_output();
@@ -94,6 +93,7 @@ fn main() -> ! {
 		for (i, col_pin) in col.iter_mut().enumerate() {
 			for (j, row_pin) in row.iter().enumerate() {
 				let _ = col_pin.set_high();
+				delay.delay_us(1);
 				if row_pin.is_high().unwrap() {
 					state |= 1 << ((j * 10 + i) as u64);
 				}
@@ -144,7 +144,7 @@ fn main() -> ! {
 	}
 }
 
-fn get_keys(state: u64) -> [Keyboard; 32] {
+fn get_keys(state: u64) -> [Keyboard; 35] {
 	let key_state_i = |index: u64| state & (1 << index) != 0;
 	let bind_key = |index, key_event| {
 		if key_state_i(index) {
@@ -185,11 +185,14 @@ fn get_keys(state: u64) -> [Keyboard; 32] {
 		bind_key(27, C),
 		bind_key(28, X),
 		bind_key(29, Z),
+		bind_key(32, LeftControl),
 		bind_key(34, Space),
+		bind_key(35, LeftShift),
 		if key_state_i(33) && key_state_i(36) {
 			DeleteBackspace
 		} else {
 			NoEventIndicated
 		},
+		bind_key(37, LeftAlt),
 	]
 }
