@@ -1,8 +1,8 @@
 #![no_std]
 #![no_main]
 
-mod keys_macro;
 mod keymap;
+mod keys_macro;
 mod panic_handler;
 use core::panic;
 use keymap::Keymap;
@@ -76,7 +76,7 @@ fn main() -> ! {
 	use embedded_hal::digital::v2::{InputPin, OutputPin};
 
 	let mut col: [&mut dyn OutputPin<Error = Infallible>; 10] =
-		output_keys!(pins, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+		output_keys!(pins, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1);
 	col.iter_mut().for_each(|pin| pin.set_low().unwrap());
 	let row: [&dyn InputPin<Error = Infallible>; 4] = input_keys!(pins, 11, 12, 13, 14);
 
@@ -107,8 +107,9 @@ fn main() -> ! {
 		if input_count_down.wait().is_ok() {
 			// Remove the always unset bit 30 as no key is connected to it
 			let debounced_state_normalised =
-				(debounced_state & 0x3fffffff) | ((debounced_state >> 31) << 30);
-			let key_events= keymap.generate_events(debounced_state_normalised);
+				(debounced_state & 0x3fffffff) | ((debounced_state >> 32) << 30);
+			println!("{:037b}", debounced_state_normalised);
+			let key_events = keymap.generate_events(debounced_state_normalised);
 
 			match keyboard.interface().write_report(key_events) {
 				Err(UsbHidError::WouldBlock) => {}
