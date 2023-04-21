@@ -47,7 +47,19 @@ impl Keymap {
 		result
 	}
 	pub fn generate_events(&self, state: [bool; KEY_COUNT]) -> [Keyboard; KEY_COUNT] {
-		let layer = self.get_active_layer(state);
+		static mut PREVIOUS_LAYER: Layer = [None; KEY_COUNT];
+		let mut layer = self.get_active_layer(state);
+		unsafe {
+			//Taking slice till 30 to exclude the thumb cluster aka all the Layer Modifier keys
+			layer[..30]
+				.iter_mut()
+				.enumerate()
+				.for_each(|(index, keymap)| {
+					if state[index] {
+						*keymap = PREVIOUS_LAYER[index]
+					}
+				});
+		}
 		let mut result = [Keyboard::NoEventIndicated; KEY_COUNT];
 
 		result
@@ -63,6 +75,7 @@ impl Keymap {
 					}
 				}
 			});
+		unsafe { PREVIOUS_LAYER = layer }
 		result
 	}
 }
