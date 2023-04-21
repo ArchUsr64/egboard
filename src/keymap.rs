@@ -27,16 +27,13 @@ impl Keymap {
 		self.layers[empty_index] = Some(layer);
 		self
 	}
-	fn get_active_layer(&self, state: u64) -> Layer {
-		fn key_state(index: u64, state: u64) -> bool {
-			state & (1 << index) != 0
-		}
+	fn get_active_layer(&self, state: [bool; KEY_COUNT]) -> Layer {
 		let mut result = self.default_layer();
 		loop {
 			let mut new_index = Option::<u8>::None;
 			result.iter().enumerate().for_each(|(index, key)| {
 				if let Some(Key::LayerModifier(layer_index)) = key {
-					if key_state(index as u64, state) {
+					if state[index] {
 						new_index = Some(*layer_index);
 					}
 				}
@@ -49,13 +46,14 @@ impl Keymap {
 		}
 		result
 	}
-	pub fn generate_events(&self, state: u64) -> [Keyboard; KEY_COUNT] {
+	pub fn generate_events(&self, state: [bool; KEY_COUNT]) -> [Keyboard; KEY_COUNT] {
 		let layer = self.get_active_layer(state);
 		let mut result = [Keyboard::NoEventIndicated; KEY_COUNT];
+
 		result
 			.iter_mut()
 			.enumerate()
-			.filter(|(i, _)| state & 1 << i != 0)
+			.filter(|(i, _)| state[*i])
 			.for_each(|(index, event)| {
 				let key = layer[index].unwrap_or(self.default_layer()[index].unwrap());
 				*event = {
@@ -200,4 +198,12 @@ impl Default for Keymap {
 			]);
 		keymap
 	}
+}
+pub fn key_state(state: u64) -> [bool; KEY_COUNT] {
+	let mut result = [false; KEY_COUNT];
+	result
+		.iter_mut()
+		.enumerate()
+		.for_each(|(index, key_state)| *key_state = state & 1 << index != 0);
+	result
 }

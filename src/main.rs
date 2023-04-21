@@ -109,7 +109,7 @@ fn main() -> ! {
 			let debounced_state_normalised =
 				(debounced_state & 0x3fffffff) | ((debounced_state >> 32) << 30);
 			println!("{:037b}", debounced_state_normalised);
-			let key_events = keymap.generate_events(debounced_state_normalised);
+			let key_events = keymap.generate_events(keymap::key_state(debounced_state_normalised));
 
 			match keyboard.interface().write_report(key_events) {
 				Err(UsbHidError::WouldBlock) => {}
