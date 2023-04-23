@@ -138,7 +138,7 @@ fn main() -> ! {
 					panic!("Failed to read keyboard report: {:?}", e)
 				}
 				Ok(leds) => {
-					led.set_state(PinState::from(leds.num_lock)).ok();
+					led.set_state(PinState::from(leds.caps_lock)).ok();
 				}
 			}
 		}

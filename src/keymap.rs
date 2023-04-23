@@ -3,13 +3,14 @@ const THUMB_CLUSTER_SIZE: usize = 7;
 
 use usbd_human_interface_device::page::Keyboard;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
 enum ThumbKey {
+	OneShotModifier(Modifier),
 	LayerModifier(u8),
 	UpDown(Keyboard),
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
 pub struct Layer {
 	finger_cluster: FingerLayer,
 	thumb_cluster: ThumbLayer,
@@ -88,9 +89,9 @@ impl Keymap {
 	pub fn generate_events(
 		&self,
 		key_state: KeyState,
-	) -> [Keyboard; FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE + 4] {
+	) -> [Keyboard; FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE + 3] {
 		let layer = self.get_buffered_layer(key_state);
-		let mut result = [Keyboard::NoEventIndicated; FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE + 4];
+		let mut result = [Keyboard::NoEventIndicated; FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE + 3];
 
 		result[0..FINGER_CLUSTER_SIZE]
 			.iter_mut()
@@ -112,11 +113,122 @@ impl Keymap {
 					*event = key
 				}
 			});
+		let any_key_pressed = result
+			.iter()
+			.filter(|event| **event != Keyboard::NoEventIndicated)
+			.count() > 0;
+		let thumb_events = self.generate_thumb_events(key_state.thumb_cluster, any_key_pressed);
+		result[FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE..]
+			.iter_mut()
+			.enumerate()
+			.for_each(|(i, key)| *key = thumb_events[i]);
 		result
+	}
+
+	fn generate_thumb_events(&self, state: ThumbState, other_key_pressed: bool) -> [Keyboard; 3] {
+		static mut MOD_KEYS: [ModKey; 3] = [
+			ModKey::new(Modifier::Control),
+			ModKey::new(Modifier::Shift),
+			ModKey::new(Modifier::Alt),
+		];
+		let mut key_state = [false; 3];
+		self.default_layer()
+			.thumb_cluster
+			.iter()
+			.enumerate()
+			.filter_map(|(index, key)| match (*key, state[index]) {
+				(Some(ThumbKey::OneShotModifier(modifier)), true) => Some(modifier),
+				_ => None,
+			})
+			.for_each(|modifier| key_state[modifier.index()] = true);
+		unsafe {
+			MOD_KEYS
+				.iter_mut()
+				.enumerate()
+				.for_each(|(i, key)| key.tick(key_state[i]));
+			if other_key_pressed {
+				[MOD_KEYS[0].fire(), MOD_KEYS[1].fire(), MOD_KEYS[2].fire()]
+			} else {
+				[Keyboard::NoEventIndicated; 3]
+			}
+		}
+	}
+}
+#[derive(Clone, Copy)]
+struct ModKey {
+	state: OneShotModifierState,
+	modifier: Modifier,
+	pressed_since: usize,
+	fired_since: usize,
+}
+impl ModKey {
+	const fn new(modifier: Modifier) -> Self {
+		Self {
+			state: OneShotModifierState::Released,
+			modifier,
+			pressed_since: 0,
+			fired_since: 0,
+		}
+	}
+	fn tick(&mut self, pressed: bool) {
+		use OneShotModifierState::*;
+		match (self.state, pressed) {
+			(Ready, false) => self.pressed_since += 1,
+			(Ready, true) => self.pressed_since = 0,
+			(Released, true) => {
+				self.state = Ready;
+				self.pressed_since = 0;
+			}
+			_ => (),
+		}
+		const RELEASE_TIMEOUT: usize = 200;
+		if self.pressed_since > RELEASE_TIMEOUT {
+			self.state = Released;
+		}
+		self.fired_since += 1;
+	}
+	fn fire(&mut self) -> Keyboard {
+		const FIRING_DELAY: usize = 20;
+		if self.state == OneShotModifierState::Ready && self.fired_since > FIRING_DELAY {
+			self.state = OneShotModifierState::Released;
+			self.pressed_since = 0;
+			self.fired_since = 0;
+			self.modifier.to_event()
+		} else {
+			Keyboard::NoEventIndicated
+		}
+	}
+}
+#[derive(Clone, Copy, PartialEq)]
+enum OneShotModifierState {
+	Released,
+	Ready,
+}
+
+#[derive(Clone, Copy)]
+enum Modifier {
+	Control,
+	Shift,
+	Alt,
+}
+impl Modifier {
+	fn to_event(&self) -> Keyboard {
+		match self {
+			Self::Control => Keyboard::LeftControl,
+			Self::Shift => Keyboard::LeftShift,
+			Self::Alt => Keyboard::LeftAlt,
+		}
+	}
+	fn index(&self) -> usize {
+		match self {
+			Self::Control => 0,
+			Self::Shift => 1,
+			Self::Alt => 2,
+		}
 	}
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
 pub struct KeyState {
 	finger_cluster: FingerState,
 	thumb_cluster: ThumbState,
@@ -190,13 +302,13 @@ impl Default for Keymap {
 					Some(Keyboard::ForwardSlash),
 				],
 				thumb_cluster: [
-					Some(ThumbKey::UpDown(Keyboard::LeftAlt)),
+					Some(ThumbKey::OneShotModifier(Modifier::Alt)),
 					Some(ThumbKey::LayerModifier(2)),
-					Some(ThumbKey::UpDown(Keyboard::LeftShift)),
+					Some(ThumbKey::OneShotModifier(Modifier::Shift)),
 					Some(ThumbKey::UpDown(Keyboard::Space)),
 					Some(ThumbKey::LayerModifier(1)),
-					Some(ThumbKey::UpDown(Keyboard::LeftControl)),
-					None,
+					Some(ThumbKey::OneShotModifier(Modifier::Control)),
+					Some(ThumbKey::UpDown(Keyboard::CapsLock)),
 				],
 			})
 			.add_layer(Layer {
