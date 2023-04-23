@@ -7,8 +7,6 @@ mod panic_handler;
 use core::panic;
 use keymap::Keymap;
 
-#[allow(unused_imports)]
-use defmt::*;
 use defmt_rtt as _;
 use rp_pico::{entry, hal};
 
@@ -108,7 +106,6 @@ fn main() -> ! {
 			// Remove the always unset bit 30 as no key is connected to it
 			let debounced_state_normalised =
 				(debounced_state & 0x3fffffff) | ((debounced_state >> 32) << 30);
-			println!("{:037b}", debounced_state_normalised);
 			let key_events = keymap.generate_events(keymap::key_state(debounced_state_normalised));
 
 			match keyboard.interface().write_report(key_events) {

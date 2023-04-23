@@ -1,13 +1,29 @@
-const KEY_COUNT: usize = 37;
+const FINGER_CLUSTER_SIZE: usize = 30;
+const THUMB_CLUSTER_SIZE: usize = 7;
 
 use usbd_human_interface_device::page::Keyboard;
+
 #[derive(Clone, Copy, Debug)]
-enum Key {
+enum ThumbKey {
 	LayerModifier(u8),
 	UpDown(Keyboard),
 }
 
-type Layer = [Option<Key>; KEY_COUNT];
+#[derive(Clone, Copy, Debug)]
+pub struct Layer {
+	finger_cluster: FingerLayer,
+	thumb_cluster: ThumbLayer,
+}
+type FingerLayer = [Option<Keyboard>; FINGER_CLUSTER_SIZE];
+type ThumbLayer = [Option<ThumbKey>; THUMB_CLUSTER_SIZE];
+impl Layer {
+	pub const fn new() -> Self {
+		Self {
+			finger_cluster: [None; FINGER_CLUSTER_SIZE],
+			thumb_cluster: [None; THUMB_CLUSTER_SIZE],
+		}
+	}
+}
 
 pub struct Keymap {
 	layers: [Option<Layer>; 256],
@@ -27,196 +43,252 @@ impl Keymap {
 		self.layers[empty_index] = Some(layer);
 		self
 	}
-	fn get_active_layer(&self, state: [bool; KEY_COUNT]) -> Layer {
-		let mut result = self.default_layer();
-		loop {
-			let mut new_index = Option::<u8>::None;
-			result.iter().enumerate().for_each(|(index, key)| {
-				if let Some(Key::LayerModifier(layer_index)) = key {
-					if state[index] {
-						new_index = Some(*layer_index);
-					}
-				}
-			});
-			if let Some(index) = new_index {
-				result = self.layers[index as usize].unwrap();
-				continue;
-			}
-			break;
-		}
-		result
+	fn get_active_layer(&self, state: ThumbState) -> Layer {
+		let new_layer_index = self
+			.default_layer()
+			.thumb_cluster
+			.iter()
+			.enumerate()
+			.filter_map(|(index, key)| match (key, state[index]) {
+				(Some(ThumbKey::LayerModifier(layer_index)), true) => Some(*layer_index),
+				_ => None,
+			})
+			.last()
+			.unwrap_or(0);
+		self.layers[new_layer_index as usize].unwrap()
 	}
-	pub fn generate_events(&self, state: [bool; KEY_COUNT]) -> [Keyboard; KEY_COUNT] {
-		static mut PREVIOUS_LAYER: Layer = [None; KEY_COUNT];
-		let mut layer = self.get_active_layer(state);
+
+	fn get_buffered_layer(&self, key_state: KeyState) -> Layer {
+		static mut PREVIOUS_LAYER: Layer = Layer::new();
+		let mut layer = self.get_active_layer(key_state.thumb_cluster);
 		unsafe {
-			//Taking slice till 30 to exclude the thumb cluster aka all the Layer Modifier keys
-			layer[..30]
+			layer
+				.finger_cluster
 				.iter_mut()
 				.enumerate()
 				.for_each(|(index, keymap)| {
-					if state[index] {
-						*keymap = PREVIOUS_LAYER[index]
+					if key_state.finger_cluster[index] {
+						*keymap = PREVIOUS_LAYER.finger_cluster[index]
+					}
+				});
+			layer
+				.thumb_cluster
+				.iter_mut()
+				.enumerate()
+				.for_each(|(index, keymap)| {
+					if key_state.thumb_cluster[index] {
+						*keymap = PREVIOUS_LAYER.thumb_cluster[index]
 					}
 				});
 		}
-		let mut result = [Keyboard::NoEventIndicated; KEY_COUNT];
+		unsafe { PREVIOUS_LAYER = layer }
+		layer
+	}
 
-		result
+	pub fn generate_events(
+		&self,
+		key_state: KeyState,
+	) -> [Keyboard; FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE + 4] {
+		let layer = self.get_buffered_layer(key_state);
+		let mut result = [Keyboard::NoEventIndicated; FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE + 4];
+
+		result[0..FINGER_CLUSTER_SIZE]
 			.iter_mut()
 			.enumerate()
-			.filter(|(i, _)| state[*i])
+			.filter(|(i, _)| key_state.finger_cluster[*i])
 			.for_each(|(index, event)| {
-				let key = layer[index].unwrap_or(self.default_layer()[index].unwrap());
-				*event = {
-					match key {
-						Key::UpDown(keycode) => keycode,
-						_ => Keyboard::NoEventIndicated,
-					}
+				let key = layer.finger_cluster[index]
+					.unwrap_or(self.default_layer().finger_cluster[index].unwrap());
+				*event = key;
+			});
+		result[FINGER_CLUSTER_SIZE..FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE]
+			.iter_mut()
+			.enumerate()
+			.filter(|(i, _)| key_state.thumb_cluster[*i])
+			.for_each(|(index, event)| {
+				if let ThumbKey::UpDown(key) = layer.thumb_cluster[index]
+					.unwrap_or(self.default_layer().thumb_cluster[index].unwrap())
+				{
+					*event = key
 				}
 			});
-		unsafe { PREVIOUS_LAYER = layer }
 		result
 	}
 }
-impl Default for Keymap {
-	fn default() -> Self {
-		let keymap = Self::new()
-			.add_layer([
-				//Row 1
-				Some(Key::UpDown(Keyboard::Q)),
-				Some(Key::UpDown(Keyboard::W)),
-				Some(Key::UpDown(Keyboard::E)),
-				Some(Key::UpDown(Keyboard::R)),
-				Some(Key::UpDown(Keyboard::T)),
-				Some(Key::UpDown(Keyboard::Y)),
-				Some(Key::UpDown(Keyboard::U)),
-				Some(Key::UpDown(Keyboard::I)),
-				Some(Key::UpDown(Keyboard::O)),
-				Some(Key::UpDown(Keyboard::P)),
-				//Row 2
-				Some(Key::UpDown(Keyboard::A)),
-				Some(Key::UpDown(Keyboard::S)),
-				Some(Key::UpDown(Keyboard::D)),
-				Some(Key::UpDown(Keyboard::F)),
-				Some(Key::UpDown(Keyboard::G)),
-				Some(Key::UpDown(Keyboard::H)),
-				Some(Key::UpDown(Keyboard::J)),
-				Some(Key::UpDown(Keyboard::K)),
-				Some(Key::UpDown(Keyboard::L)),
-				Some(Key::UpDown(Keyboard::Semicolon)),
-				//Row 3
-				Some(Key::UpDown(Keyboard::Z)),
-				Some(Key::UpDown(Keyboard::X)),
-				Some(Key::UpDown(Keyboard::C)),
-				Some(Key::UpDown(Keyboard::V)),
-				Some(Key::UpDown(Keyboard::B)),
-				Some(Key::UpDown(Keyboard::N)),
-				Some(Key::UpDown(Keyboard::M)),
-				Some(Key::UpDown(Keyboard::Comma)),
-				Some(Key::UpDown(Keyboard::Dot)),
-				Some(Key::UpDown(Keyboard::ForwardSlash)),
-				//Row 4
-				Some(Key::UpDown(Keyboard::LeftAlt)),
-				Some(Key::LayerModifier(2)),
-				Some(Key::UpDown(Keyboard::LeftShift)),
-				Some(Key::UpDown(Keyboard::Space)),
-				Some(Key::LayerModifier(1)),
-				Some(Key::UpDown(Keyboard::LeftControl)),
-				None,
-			])
-			.add_layer([
-				Some(Key::UpDown(Keyboard::Grave)),
-				Some(Key::UpDown(Keyboard::LeftBrace)),
-				Some(Key::UpDown(Keyboard::RightBrace)),
-				Some(Key::UpDown(Keyboard::Minus)),
-				Some(Key::UpDown(Keyboard::Equal)),
-				Some(Key::UpDown(Keyboard::LeftArrow)),
-				Some(Key::UpDown(Keyboard::DownArrow)),
-				Some(Key::UpDown(Keyboard::UpArrow)),
-				Some(Key::UpDown(Keyboard::RightArrow)),
-				Some(Key::UpDown(Keyboard::Backslash)),
-				//Row 2
-				Some(Key::UpDown(Keyboard::Keyboard1)),
-				Some(Key::UpDown(Keyboard::Keyboard2)),
-				Some(Key::UpDown(Keyboard::Keyboard3)),
-				Some(Key::UpDown(Keyboard::Keyboard4)),
-				Some(Key::UpDown(Keyboard::Keyboard5)),
-				Some(Key::UpDown(Keyboard::Keyboard6)),
-				Some(Key::UpDown(Keyboard::Keyboard7)),
-				Some(Key::UpDown(Keyboard::Keyboard8)),
-				Some(Key::UpDown(Keyboard::Keyboard9)),
-				Some(Key::UpDown(Keyboard::Keyboard0)),
-				//Row 3
-				None,
-				None,
-				None,
-				Some(Key::UpDown(Keyboard::Tab)),
-				None,
-				None,
-				Some(Key::UpDown(Keyboard::Apostrophe)),
-				None,
-				None,
-				None,
-				//Thumb cluster
-				None,
-				Some(Key::UpDown(Keyboard::DeleteBackspace)),
-				None,
-				None,
-				None,
-				None,
-				None,
-			])
-			.add_layer([
-				None,
-				None,
-				None,
-				None,
-				None,
-				None,
-				None,
-				None,
-				None,
-				None,
-				//Row 2
-				Some(Key::UpDown(Keyboard::Escape)),
-				None,
-				None,
-				None,
-				None,
-				None,
-				None,
-				None,
-				None,
-				Some(Key::UpDown(Keyboard::ReturnEnter)),
-				//Row 3
-				None,
-				None,
-				None,
-				None,
-				None,
-				None,
-				None,
-				None,
-				None,
-				None,
-				//Thumb cluster
-				None,
-				None,
-				None,
-				None,
-				Some(Key::UpDown(Keyboard::DeleteBackspace)),
-				None,
-				None,
-			]);
-		keymap
+
+#[derive(Clone, Copy, Debug)]
+pub struct KeyState {
+	finger_cluster: FingerState,
+	thumb_cluster: ThumbState,
+}
+type FingerState = [bool; FINGER_CLUSTER_SIZE];
+type ThumbState = [bool; THUMB_CLUSTER_SIZE];
+
+impl KeyState {
+	pub const fn new() -> Self {
+		Self {
+			finger_cluster: [false; FINGER_CLUSTER_SIZE],
+			thumb_cluster: [false; THUMB_CLUSTER_SIZE],
+		}
 	}
 }
-pub fn key_state(state: u64) -> [bool; KEY_COUNT] {
-	let mut result = [false; KEY_COUNT];
+
+pub fn key_state(state: u64) -> KeyState {
+	let mut result = KeyState::new();
 	result
+		.finger_cluster
 		.iter_mut()
 		.enumerate()
 		.for_each(|(index, key_state)| *key_state = state & 1 << index != 0);
 	result
+		.thumb_cluster
+		.iter_mut()
+		.enumerate()
+		.for_each(|(index, key_state)| {
+			*key_state = state & 1 << (FINGER_CLUSTER_SIZE + index) != 0
+		});
+	result
+}
+
+impl Default for Keymap {
+	fn default() -> Self {
+		let keymap = Self::new()
+			.add_layer(Layer {
+				finger_cluster: [
+					//Row 1
+					Some(Keyboard::Q),
+					Some(Keyboard::W),
+					Some(Keyboard::E),
+					Some(Keyboard::R),
+					Some(Keyboard::T),
+					Some(Keyboard::Y),
+					Some(Keyboard::U),
+					Some(Keyboard::I),
+					Some(Keyboard::O),
+					Some(Keyboard::P),
+					//Row 2
+					Some(Keyboard::A),
+					Some(Keyboard::S),
+					Some(Keyboard::D),
+					Some(Keyboard::F),
+					Some(Keyboard::G),
+					Some(Keyboard::H),
+					Some(Keyboard::J),
+					Some(Keyboard::K),
+					Some(Keyboard::L),
+					Some(Keyboard::Semicolon),
+					//Row 3
+					Some(Keyboard::Z),
+					Some(Keyboard::X),
+					Some(Keyboard::C),
+					Some(Keyboard::V),
+					Some(Keyboard::B),
+					Some(Keyboard::N),
+					Some(Keyboard::M),
+					Some(Keyboard::Comma),
+					Some(Keyboard::Dot),
+					Some(Keyboard::ForwardSlash),
+				],
+				thumb_cluster: [
+					Some(ThumbKey::UpDown(Keyboard::LeftAlt)),
+					Some(ThumbKey::LayerModifier(2)),
+					Some(ThumbKey::UpDown(Keyboard::LeftShift)),
+					Some(ThumbKey::UpDown(Keyboard::Space)),
+					Some(ThumbKey::LayerModifier(1)),
+					Some(ThumbKey::UpDown(Keyboard::LeftControl)),
+					None,
+				],
+			})
+			.add_layer(Layer {
+				finger_cluster: [
+					Some(Keyboard::Grave),
+					Some(Keyboard::LeftBrace),
+					Some(Keyboard::RightBrace),
+					Some(Keyboard::Minus),
+					Some(Keyboard::Equal),
+					Some(Keyboard::LeftArrow),
+					Some(Keyboard::DownArrow),
+					Some(Keyboard::UpArrow),
+					Some(Keyboard::RightArrow),
+					Some(Keyboard::Backslash),
+					//Row 2
+					Some(Keyboard::Keyboard1),
+					Some(Keyboard::Keyboard2),
+					Some(Keyboard::Keyboard3),
+					Some(Keyboard::Keyboard4),
+					Some(Keyboard::Keyboard5),
+					Some(Keyboard::Keyboard6),
+					Some(Keyboard::Keyboard7),
+					Some(Keyboard::Keyboard8),
+					Some(Keyboard::Keyboard9),
+					Some(Keyboard::Keyboard0),
+					//Row 3
+					None,
+					None,
+					None,
+					Some(Keyboard::Escape),
+					None,
+					None,
+					Some(Keyboard::Apostrophe),
+					None,
+					None,
+					None,
+				],
+				thumb_cluster: [
+					None,
+					Some(ThumbKey::UpDown(Keyboard::DeleteBackspace)),
+					None,
+					None,
+					None,
+					None,
+					None,
+				],
+			})
+			.add_layer(Layer {
+				finger_cluster: [
+					None,
+					None,
+					None,
+					None,
+					None,
+					None,
+					None,
+					None,
+					None,
+					None,
+					//Row 2
+					Some(Keyboard::Tab),
+					None,
+					None,
+					None,
+					None,
+					None,
+					None,
+					None,
+					Some(Keyboard::ReturnEnter),
+					None,
+					//Row 3
+					None,
+					None,
+					None,
+					Some(Keyboard::Escape),
+					None,
+					None,
+					None,
+					None,
+					None,
+					None,
+				],
+				thumb_cluster: [
+					None,
+					None,
+					None,
+					None,
+					Some(ThumbKey::UpDown(Keyboard::DeleteBackspace)),
+					None,
+					None,
+				],
+			});
+		keymap
+	}
 }
