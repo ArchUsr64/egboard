@@ -146,63 +146,92 @@ impl Keymap {
 				.iter_mut()
 				.enumerate()
 				.for_each(|(i, key)| key.tick(key_state[i]));
-			if other_key_pressed {
-				[MOD_KEYS[0].fire(), MOD_KEYS[1].fire(), MOD_KEYS[2].fire()]
-			} else {
-				[Keyboard::NoEventIndicated; 3]
-			}
+			[
+				MOD_KEYS[0].fire(other_key_pressed),
+				MOD_KEYS[1].fire(other_key_pressed),
+				MOD_KEYS[2].fire(other_key_pressed),
+			]
 		}
 	}
 }
 #[derive(Clone, Copy)]
 struct ModKey {
 	state: OneShotModifierState,
+	previous_state: OneShotModifierState,
+	previous_key_state: bool,
 	modifier: Modifier,
 	pressed_since: usize,
-	fired_since: usize,
+	released_since: usize,
 }
 impl ModKey {
 	const fn new(modifier: Modifier) -> Self {
 		Self {
 			state: OneShotModifierState::Released,
+			previous_state: OneShotModifierState::Released,
+			previous_key_state: false,
 			modifier,
 			pressed_since: 0,
-			fired_since: 0,
+			released_since: 0,
 		}
+	}
+	fn key_held(&self, state: bool) -> bool {
+		const HOLD_TIMER: usize = 30;
+		self.released_since > HOLD_TIMER && state
 	}
 	fn tick(&mut self, pressed: bool) {
+		let key_held = self.key_held(pressed);
 		use OneShotModifierState::*;
-		match (self.state, pressed) {
-			(Ready, false) => self.pressed_since += 1,
-			(Ready, true) => self.pressed_since = 0,
-			(Released, true) => {
-				self.state = Ready;
-				self.pressed_since = 0;
+		let new_state = match (self.state, pressed, key_held) {
+			(Released, true, false) => {
+				if self.previous_key_state {
+					Released
+				} else {
+					Ready
+				}
 			}
-			_ => (),
-		}
-		const RELEASE_TIMEOUT: usize = 200;
-		if self.pressed_since > RELEASE_TIMEOUT {
-			self.state = Released;
-		}
-		self.fired_since += 1;
-	}
-	fn fire(&mut self) -> Keyboard {
-		const FIRING_DELAY: usize = 20;
-		if self.state == OneShotModifierState::Ready && self.fired_since > FIRING_DELAY {
-			self.state = OneShotModifierState::Released;
+			(Released, true, true) => Held,
+			(Ready, true, true) => Held,
+			(Held, false, _) => Released,
+			(x, _, _) => x,
+		};
+		if pressed {
+			self.released_since += 1;
 			self.pressed_since = 0;
-			self.fired_since = 0;
-			self.modifier.to_event()
 		} else {
-			Keyboard::NoEventIndicated
+			self.pressed_since += 1;
+			self.released_since = 0;
+		}
+		if self.state != new_state {
+			self.previous_state = self.state;
+			self.state = new_state
+		}
+		if self.previous_key_state != pressed {
+			self.previous_key_state = pressed;
+		}
+	}
+	fn fire(&mut self, other_pressed: bool) -> Keyboard {
+		use OneShotModifierState::*;
+		let event = self.modifier.to_event();
+		match (self.state, other_pressed) {
+			(Ready, true) => {
+				self.state = if self.previous_key_state {
+					Held
+				} else {
+					Released
+				};
+				event
+			}
+			(Released, _) | (Ready, false) => Keyboard::NoEventIndicated,
+			_ => event,
 		}
 	}
 }
+
 #[derive(Clone, Copy, PartialEq)]
 enum OneShotModifierState {
 	Released,
 	Ready,
+	Held,
 }
 
 #[derive(Clone, Copy)]
@@ -308,7 +337,7 @@ impl Default for Keymap {
 					Some(ThumbKey::UpDown(Keyboard::Space)),
 					Some(ThumbKey::LayerModifier(1)),
 					Some(ThumbKey::OneShotModifier(Modifier::Control)),
-					Some(ThumbKey::UpDown(Keyboard::CapsLock)),
+					Some(ThumbKey::UpDown(Keyboard::LockingCapsLock)),
 				],
 			})
 			.add_layer(Layer {
