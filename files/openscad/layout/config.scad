@@ -1,4 +1,4 @@
-offset = 6;
+offset = 8;
 
 //Key dimensions
 key_gap = 5.15;

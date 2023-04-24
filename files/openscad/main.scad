@@ -4,10 +4,46 @@ use<layout/layout.scad>;
 $fn = 20;
 screw_hole_m3 = 3.5;
 screw_hole_m2 = 2.5;
-module plate(holes = true) {
-	mirror([1, 0, 0]) layout(holes);
-	layout(holes);
+module layout_with_holes(holes = false) {
+	angle = -18;
+	offset = 20;
+	module holes(size) {
+		holes = [
+			[5, -5],
+			[75, -5],
+			[5, -67],
+			[42, -87],
+			[115, -108]
+		];
+		for (i = [0:len(holes) - 1]) {
+			translate([holes[i][0], holes[i][1], 0]) circle(d = size);
+		}
+	}
+	module plate() {
+		difference() {
+			union() {
+				translate([108, -50, 0]) rotate(16) square([22, 85], center = true);
+				layout(false);
+				rounded = 4;
+				size = [106.1 - 2 * rounded, 72 - 2 * rounded];
+				offset(rounded) translate([rounded, -size[1] - rounded, 0]) square(size);
+				holes(10);
+			}
+			holes(screw_hole_m3);
+			if (holes) {
+				layout(true);
+			}
+		}
+	}
+	size = [40, 90];
+	translate([0, size[1] / 2, 0]) square(size, center = true);
+	mirror([1, 0, 0]) translate([-offset, 0, 0]) rotate(angle) translate([-127, 90, 0])
+		plate();
+	translate([-offset, 0, 0]) rotate(angle) translate([-127, 90, 0])
+		plate();
 }
+layout_with_holes(holes = false);
+// rotate(90) translate([0, -50, 0]) layout_with_holes(holes = true);
 offset = 10;
 channel_height = 103;
 module top() {
@@ -21,7 +57,6 @@ module top() {
 			plate(holes = false);
 			plate(holes = true);
 		}
-		translate([0, -28, 0]) color([1, 0, 0, 0.5]) oled();
 		holes();
 	}
 }
