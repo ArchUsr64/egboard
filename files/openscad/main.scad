@@ -8,14 +8,6 @@ module plate(holes = true) {
 	mirror([1, 0, 0]) layout(holes);
 	layout(holes);
 }
-module oled() {
-	screw_hole_pos = [[15.2, 13.7], [15.2, -15], [-15.2, -15], [-15.2, 13.7]];
-	square([36, 20], center = true);
-	for (i = [0:len(screw_hole_pos) - 1]) {
-		translate([screw_hole_pos[i][0], screw_hole_pos[i][1], 0])
-			circle(d = screw_hole_m3);
-	}
-}
 offset = 10;
 channel_height = 103;
 module top() {
