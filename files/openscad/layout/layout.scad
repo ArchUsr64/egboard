@@ -1,17 +1,16 @@
 include<config.scad>;
 module layout(holes = true) {
-	translate([-140, 0, 0])
-		translate([key_size / 2 + offset, -(key_size / 2 + offset), 0])
-			difference() {
-		offset(offset) union() {
-			holes(true);
-		};
+	diff = key_hole_size / 2 + offset;
+	translate([diff, -diff, 0]) {
 		if (holes) {
 			holes();
+		} else {
+			offset(offset) holes(true);
 		}
 	}
 }
 layout(holes = true);
+color([0, 1, 0, 0.2]) layout(false);
 module holes(holes = false) {
 	module square_centered(center2 = [0, 0]) {
 		size = key_hole_size;
