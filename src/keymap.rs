@@ -3,6 +3,8 @@ const THUMB_CLUSTER_SIZE: usize = 7;
 
 use usbd_human_interface_device::page::Keyboard;
 
+use crate::POLLING_DELAY_MS;
+
 #[derive(Clone, Copy)]
 enum ThumbKey {
 	OneShotModifier(Modifier),
@@ -160,8 +162,8 @@ struct ModKey {
 	previous_state: OneShotModifierState,
 	previous_key_state: bool,
 	modifier: Modifier,
-	pressed_since: usize,
-	released_since: usize,
+	pressed_since: u32,
+	released_since: u32,
 }
 impl ModKey {
 	const fn new(modifier: Modifier) -> Self {
@@ -175,7 +177,7 @@ impl ModKey {
 		}
 	}
 	fn key_held(&self, state: bool) -> bool {
-		const HOLD_TIMER: usize = 30;
+		const HOLD_TIMER: u32 = 300 / POLLING_DELAY_MS;
 		self.released_since > HOLD_TIMER && state
 	}
 	fn tick(&mut self, pressed: bool) {
@@ -337,7 +339,7 @@ impl Default for Keymap {
 					Some(ThumbKey::UpDown(Keyboard::Space)),
 					Some(ThumbKey::LayerModifier(1)),
 					Some(ThumbKey::OneShotModifier(Modifier::Control)),
-					Some(ThumbKey::UpDown(Keyboard::LockingCapsLock)),
+					Some(ThumbKey::LayerModifier(3)),
 				],
 			})
 			.add_layer(Layer {
@@ -402,7 +404,7 @@ impl Default for Keymap {
 					None,
 					None,
 					None,
-					None,
+					Some(Keyboard::LeftGUI),
 					None,
 					None,
 					None,
@@ -426,6 +428,51 @@ impl Default for Keymap {
 					None,
 					None,
 					Some(ThumbKey::UpDown(Keyboard::DeleteBackspace)),
+					None,
+					None,
+				],
+			})
+			.add_layer(Layer {
+				finger_cluster: [
+					Some(Keyboard::Mute),
+					Some(Keyboard::VolumeDown),
+					Some(Keyboard::VolumeUp),
+					Some(Keyboard::Insert),
+					Some(Keyboard::PrintScreen),
+					Some(Keyboard::Home),
+					Some(Keyboard::PageDown),
+					Some(Keyboard::PageUp),
+					Some(Keyboard::End),
+					Some(Keyboard::CapsLock),
+					//Row 2
+					Some(Keyboard::F1),
+					Some(Keyboard::F2),
+					Some(Keyboard::F3),
+					Some(Keyboard::F4),
+					Some(Keyboard::F5),
+					Some(Keyboard::F6),
+					Some(Keyboard::F7),
+					Some(Keyboard::F8),
+					Some(Keyboard::F9),
+					Some(Keyboard::F10),
+					//Row 3
+					None,
+					None,
+					None,
+					Some(Keyboard::F11),
+					None,
+					None,
+					Some(Keyboard::F12),
+					None,
+					None,
+					None,
+				],
+				thumb_cluster: [
+					None,
+					Some(ThumbKey::UpDown(Keyboard::DeleteForward)),
+					None,
+					None,
+					Some(ThumbKey::UpDown(Keyboard::DeleteForward)),
 					None,
 					None,
 				],

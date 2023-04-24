@@ -1,6 +1,8 @@
 #![no_std]
 #![no_main]
 
+pub const POLLING_DELAY_MS: u32 = 1;
+
 mod keymap;
 mod keys_macro;
 mod panic_handler;
@@ -79,7 +81,7 @@ fn main() -> ! {
 	let row: [&dyn InputPin<Error = Infallible>; 4] = input_keys!(pins, 11, 12, 13, 14);
 
 	let mut input_count_down = timer.count_down();
-	input_count_down.start(10.millis());
+	input_count_down.start(POLLING_DELAY_MS.millis());
 
 	let mut tick_count_down = timer.count_down();
 	tick_count_down.start(1.millis());
