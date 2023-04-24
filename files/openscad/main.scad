@@ -1,6 +1,5 @@
 // clang-format off
 use<layout/layout.scad>;
-use<rust_logo/logo.scad>;
 // clang-format on
 $fn = 20;
 screw_hole_m3 = 3.5;
@@ -18,7 +17,6 @@ module oled() {
 	}
 }
 offset = 10;
-logo_scale = 1.2;
 channel_height = 103;
 module top() {
 	difference() {
@@ -32,7 +30,6 @@ module top() {
 			plate(holes = true);
 		}
 		translate([0, -28, 0]) color([1, 0, 0, 0.5]) oled();
-		translate([0, -70, 0]) logo(scale = logo_scale);
 		holes();
 	}
 }
