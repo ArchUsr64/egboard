@@ -60,7 +60,7 @@ fn main() -> ! {
 	use usbd_human_interface_device::device;
 	let mut egboard = UsbHidClassBuilder::new()
 		.add_interface(device::keyboard::NKROBootKeyboardConfig::default())
-		.add_interface(device::mouse::BootMouseConfig::default())
+		.add_interface(device::mouse::WheelMouseConfig::default())
 		.build(&usb_bus);
 
 	//https://pid.codes
@@ -88,8 +88,8 @@ fn main() -> ! {
 
 	let mut previous_state = !0;
 
-	let mut mouse_report = device::mouse::BootMouseReport::default();
-	mouse_report.y = 1;
+	let mut mouse_report = device::mouse::WheelMouseReport::default();
+	mouse_report.y = 5;
 
 	let keymap = Keymap::default();
 	loop {
@@ -140,7 +140,7 @@ fn main() -> ! {
 			};
 		}
 
-		let mouse = egboard.interface::<device::mouse::BootMouseInterface<'_, _>, _>();
+		let mouse = egboard.interface::<device::mouse::WheelMouseInterface<'_, _>, _>();
 		mouse_report.y *= -1;
 
 		match mouse.write_report(&mouse_report) {
