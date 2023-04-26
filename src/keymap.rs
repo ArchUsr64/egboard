@@ -184,14 +184,7 @@ impl ModKey {
 		let key_held = self.key_held(pressed);
 		use OneShotModifierState::*;
 		let new_state = match (self.state, pressed, key_held) {
-			(Released, true, false) => {
-				if self.previous_key_state {
-					Released
-				} else {
-					Ready
-				}
-			}
-			(Released, true, true) => Held,
+			(Released, true, false) => Ready,
 			(Ready, true, true) => Held,
 			(Held, false, _) => Released,
 			(x, _, _) => x,

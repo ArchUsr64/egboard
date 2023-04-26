@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 
-pub const POLLING_DELAY_MS: u32 = 1;
+pub const POLLING_DELAY_MS: u32 = 10;
 
 mod keymap;
 mod keys_macro;
@@ -57,10 +57,10 @@ fn main() -> ! {
 		&mut pac.RESETS,
 	));
 
-	let mut keyboard = UsbHidClassBuilder::new()
-		.add_interface(
-			usbd_human_interface_device::device::keyboard::NKROBootKeyboardConfig::default(),
-		)
+	use usbd_human_interface_device::device;
+	let mut egboard = UsbHidClassBuilder::new()
+		.add_interface(device::keyboard::NKROBootKeyboardConfig::default())
+		.add_interface(device::mouse::BootMouseConfig::default())
 		.build(&usb_bus);
 
 	//https://pid.codes
@@ -88,6 +88,9 @@ fn main() -> ! {
 
 	let mut previous_state = !0;
 
+	let mut mouse_report = device::mouse::BootMouseReport::default();
+	mouse_report.y = 1;
+
 	let keymap = Keymap::default();
 	loop {
 		let mut state = 0;
@@ -110,7 +113,10 @@ fn main() -> ! {
 				(debounced_state & 0x3fffffff) | ((debounced_state >> 32) << 30);
 			let key_events = keymap.generate_events(keymap::key_state(debounced_state_normalised));
 
-			match keyboard.interface().write_report(key_events) {
+			match egboard
+				.interface::<device::keyboard::NKROBootKeyboardInterface<'_, _>, _>()
+				.write_report(key_events)
+			{
 				Err(UsbHidError::WouldBlock) => {}
 				Err(UsbHidError::Duplicate) => {}
 				Ok(_) => {}
@@ -122,7 +128,10 @@ fn main() -> ! {
 
 		//Tick once per ms
 		if tick_count_down.wait().is_ok() {
-			match keyboard.interface().tick() {
+			match egboard
+				.interface::<device::keyboard::NKROBootKeyboardInterface<'_, _>, _>()
+				.tick()
+			{
 				Err(UsbHidError::WouldBlock) => {}
 				Ok(_) => {}
 				Err(e) => {
@@ -131,8 +140,22 @@ fn main() -> ! {
 			};
 		}
 
-		if usb_dev.poll(&mut [&mut keyboard]) {
-			match keyboard.interface().read_report() {
+		let mouse = egboard.interface::<device::mouse::BootMouseInterface<'_, _>, _>();
+		mouse_report.y *= -1;
+
+		match mouse.write_report(&mouse_report) {
+			Err(UsbHidError::WouldBlock) => {}
+			Ok(_) => {}
+			Err(e) => {
+				core::panic!("Failed to write mouse report: {:?}", e)
+			}
+		};
+
+		if usb_dev.poll(&mut [&mut egboard]) {
+			match egboard
+				.interface::<device::keyboard::NKROBootKeyboardInterface<'_, _>, _>()
+				.read_report()
+			{
 				Err(UsbError::WouldBlock) => {
 					//do nothing
 				}
