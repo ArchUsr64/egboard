@@ -81,16 +81,11 @@ module top() {
 
 module bottom() {
 	difference() {
-		union() {
-			plate(holes = false);
-			translate([0, -channel_height / 2, 0]) offset(offset)
-				square([280 - 2 * offset, channel_height - 2 * offset], center = true);
+		union(){
+			layout_with_holes(holes = false);
+			holes(screw_offset);
 		}
-		translate([75, -50, 0]) pi_pico();
-		translate([-100, -14, 0]) type_c();
-		translate([-100, -74, 0]) type_c();
-		translate([100, -15, 0]) type_a_screw_holes();
-		holes();
+		holes(screw_hole_m3);
 	}
 }
 
