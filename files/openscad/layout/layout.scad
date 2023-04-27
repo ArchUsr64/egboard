@@ -1,27 +1,24 @@
 include<config.scad>;
 module layout(holes = true) {
-	translate([-140, 0, 0])
-		translate([key_size / 2 + offset, -(key_size / 2 + offset), 0])
-			difference() {
-		offset(offset) union() {
-			holes(true);
-		};
+	diff = key_hole_size / 2 + offset;
+	translate([diff, -diff, 0]) {
 		if (holes) {
 			holes();
+		} else {
+			offset(offset) holes(true);
 		}
 	}
 }
 layout(holes = true);
+color([0, 1, 0, 0.2]) layout(false);
 module holes(holes = false) {
 	module square_centered(center2 = [0, 0]) {
-		size = key_size;
-		if (holes)
-			translate([center2[0] - size / 2, center2[1] - size / 2, 0])
-				square([size, size]);
-		else
-			translate(
-				[center2[0] - key_hole_size / 2, center2[1] - key_hole_size / 2, 0])
-				square([key_hole_size, key_hole_size]);
+		size = key_hole_size;
+		if (holes) {
+			size = key_size;
+		}
+		translate([center2[0], center2[1], 0])
+		square([size, size], center = true);
 	}
 
 	for (i = [0:len(key_column_count) - 1]) {
@@ -36,12 +33,12 @@ module holes(holes = false) {
 	function rotation_offset_till(radius, key_size, i) =
 		i * 2 * atan(.5 * key_size / (radius - key_size * 0.5));
 	for (i = [0:rotating_key_count - 1]) {
-		rotation_offset = rotation_offset_till(thumb_r, key_size, i);
+		rotation_offset = rotation_offset_till(thumb_r, key_size, i) + key_rotation_init;
 		translate([
-			thumb_axis2[0] + thumb_r * cos(rotation_offset + key_rotation_init),
-			thumb_axis2[1] + thumb_r * sin(rotation_offset + key_rotation_init),
+			thumb_axis2[0] + thumb_r * cos(rotation_offset),
+			thumb_axis2[1] + thumb_r * sin(rotation_offset),
 			0
-		]) rotate(key_rotation_init + rotation_offset) square_centered();
+		]) rotate(rotation_offset) square_centered();
 	}
 	linear_key_pos_init2 = [
 		thumb_axis2[0]

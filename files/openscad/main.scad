@@ -1,97 +1,101 @@
 // clang-format off
 use<layout/layout.scad>;
-use<rust_logo/logo.scad>;
 // clang-format on
 $fn = 20;
 screw_hole_m3 = 3.5;
 screw_hole_m2 = 2.5;
-module plate(holes = true) {
-	mirror([1, 0, 0]) layout(holes);
-	layout(holes);
-}
-module oled() {
-	screw_hole_pos = [[15.2, 13.7], [15.2, -15], [-15.2, -15], [-15.2, 13.7]];
-	square([36, 20], center = true);
-	for (i = [0:len(screw_hole_pos) - 1]) {
-		translate([screw_hole_pos[i][0], screw_hole_pos[i][1], 0])
-			circle(d = screw_hole_m3);
+screw_offset = 10;
+
+module layout_with_holes(holes = false) {
+	angle = -18;
+	offset = 20;
+	module holes(size) {
+		holes = [
+			[5, -5],
+			[65, -5],
+			[5, -67],
+			[43, -87],
+			[81, -88],
+			[125, -98],
+		];
+		for (i = [0:len(holes) - 1]) {
+			translate([holes[i][0], holes[i][1], 0]) circle(d = size);
+		}
 	}
+	module plate() {
+		difference() {
+			union() {
+				translate([108, -50, 0]) rotate(16) square([22, 85], center = true);
+				layout(false);
+				rounded = 4;
+				size = [106.1 - 2 * rounded, 72 - 2 * rounded];
+				offset(rounded) translate([rounded, -size[1] - rounded, 0]) square(size);
+				holes(screw_offset);
+			}
+			holes(screw_hole_m3);
+			if (holes) {
+				layout(true);
+			}
+		}
+	}
+	size = [45, 102];
+	translate([0, size[1] / 2 - 8, 0]) square(size, center = true);
+	mirror([1, 0, 0]) translate([-offset, 0, 0]) rotate(angle) translate([-127, 90, 0])
+		plate();
+	translate([-offset, 0, 0]) rotate(angle) translate([-127, 90, 0])
+		plate();
 }
+bottom();
+// rotate(90) translate([0, -50, 0]) top();
 offset = 10;
-logo_scale = 1.2;
 channel_height = 103;
 module top() {
+	module type_a_screw_holes() {
+		x_offset = 11.82;
+		y_offset = -2.755;
+		translate([x_offset / 2, y_offset, 0]) circle(d = screw_hole_m3);
+		translate([-x_offset / 2, y_offset, 0]) circle(d = screw_hole_m3);
+	}
+	module pi_pico() {
+		hole_offset_x = 11.4;
+		hole_offset_y = 46;
+		holes =
+			[[hole_offset_x / 2, hole_offset_y / 2],
+			 [hole_offset_x / 2, -hole_offset_y / 2],
+			 [-hole_offset_x / 2, hole_offset_y / 2],
+			 [-hole_offset_x / 2, -hole_offset_y / 2]];
+		for (i = [0:len(holes) - 1]) {
+			translate([holes[i][0], holes[i][1], 0]) circle(d = screw_hole_m2);
+		}
+	}
 	difference() {
-		union() {
-			plate();
-			translate([0, -channel_height / 2, 0]) offset(offset)
-				square([280 - 2 * offset, channel_height - 2 * offset], center = true);
+		union(){
+			layout_with_holes(holes = true);
+			holes(screw_offset);
 		}
-		difference() {
-			plate(holes = false);
-			plate(holes = true);
-		}
-		translate([0, -28, 0]) color([1, 0, 0, 0.5]) oled();
-		translate([0, -70, 0]) logo(scale = logo_scale);
-		holes();
+		translate([0, 40, 0]) pi_pico();
+		translate([0, 75, 0])type_a_screw_holes();
+		holes(screw_hole_m3);
 	}
 }
 
-module type_a_screw_holes() {
-	x_offset = 11.82;
-	y_offset = -2.755;
-	translate([x_offset / 2, y_offset, 0]) circle(d = screw_hole_m3);
-	translate([-x_offset / 2, y_offset, 0]) circle(d = screw_hole_m3);
-}
-module type_c() {
-	type_c_size = [40, 25.5];
-	x_offset = 32.74;
-	y_offset = 4.6;
-	translate([-x_offset / 2, type_c_size[1] / 2 - y_offset, 0])
-		circle(d = screw_hole_m2);
-	translate([x_offset / 2, type_c_size[1] / 2 - y_offset, 0])
-		circle(d = screw_hole_m2);
-}
-module pi_pico() {
-	hole_offset_x = 11.4;
-	hole_offset_y = 46;
-	holes =
-		[[hole_offset_x / 2, hole_offset_y / 2],
-		 [hole_offset_x / 2, -hole_offset_y / 2],
-		 [-hole_offset_x / 2, hole_offset_y / 2],
-		 [-hole_offset_x / 2, -hole_offset_y / 2]];
-	for (i = [0:len(holes) - 1]) {
-		translate([holes[i][0], holes[i][1], 0]) circle(d = screw_hole_m2);
-	}
-}
 module bottom() {
 	difference() {
-		union() {
-			plate(holes = false);
-			translate([0, -channel_height / 2, 0]) offset(offset)
-				square([280 - 2 * offset, channel_height - 2 * offset], center = true);
+		union(){
+			layout_with_holes(holes = false);
+			holes(screw_offset);
 		}
-		translate([75, -50, 0]) pi_pico();
-		translate([-100, -14, 0]) type_c();
-		translate([-100, -74, 0]) type_c();
-		translate([100, -15, 0]) type_a_screw_holes();
-		holes();
+		holes(screw_hole_m3);
 	}
 }
-module holes() {
+
+module holes(size) {
 	holes = [
-		[22, -5],
-		[75, -5],
-		[22, -50],
-		[125, -5],
-		[135, -50],
-		[125, -98],
-		[22, -115],
-		[0, -98],
-		[75, -98]
+		[30, 25],
+		[20, 92],
 	];
 	for (i = [0:len(holes) - 1]) {
-		translate([holes[i][0], holes[i][1], 0]) circle(d = screw_hole_m3);
-		translate([-holes[i][0], holes[i][1], 0]) circle(d = screw_hole_m3);
+		translate([holes[i][0], holes[i][1], 0]) circle(d = size);
+		translate([-holes[i][0], holes[i][1], 0]) circle(d = size);
 	}
 }
