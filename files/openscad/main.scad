@@ -45,8 +45,8 @@ module layout_with_holes(holes = false) {
 	translate([-offset, 0, 0]) rotate(angle) translate([-127, 90, 0])
 		plate();
 }
-// top();
-rotate(90) translate([0, -50, 0]) top();
+bottom();
+// rotate(90) translate([0, -50, 0]) top();
 offset = 10;
 channel_height = 103;
 module top() {
