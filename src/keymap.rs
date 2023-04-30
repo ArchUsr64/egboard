@@ -1,5 +1,5 @@
 const FINGER_CLUSTER_SIZE: usize = 30;
-const THUMB_CLUSTER_SIZE: usize = 7;
+const THUMB_CLUSTER_SIZE: usize = 8;
 
 use usbd_human_interface_device::page::Keyboard;
 
@@ -326,9 +326,10 @@ impl Default for Keymap {
 					Some(Keyboard::ForwardSlash),
 				],
 				thumb_cluster: [
+					Some(ThumbKey::UpDown(Keyboard::Escape)),
 					Some(ThumbKey::OneShotModifier(Modifier::Alt)),
 					Some(ThumbKey::LayerModifier(2)),
-					Some(ThumbKey::OneShotModifier(Modifier::Shift)),
+					Some(ThumbKey::UpDown(Keyboard::LeftShift)),
 					Some(ThumbKey::UpDown(Keyboard::Space)),
 					Some(ThumbKey::LayerModifier(1)),
 					Some(ThumbKey::OneShotModifier(Modifier::Control)),
@@ -371,6 +372,7 @@ impl Default for Keymap {
 					None,
 				],
 				thumb_cluster: [
+					None,
 					None,
 					Some(ThumbKey::UpDown(Keyboard::DeleteBackspace)),
 					None,
@@ -420,6 +422,7 @@ impl Default for Keymap {
 					None,
 					None,
 					None,
+					None,
 					Some(ThumbKey::UpDown(Keyboard::DeleteBackspace)),
 					None,
 					None,
@@ -461,6 +464,7 @@ impl Default for Keymap {
 					None,
 				],
 				thumb_cluster: [
+					None,
 					None,
 					Some(ThumbKey::UpDown(Keyboard::DeleteForward)),
 					None,

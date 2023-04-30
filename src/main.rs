@@ -63,10 +63,9 @@ fn main() -> ! {
 		.add_interface(device::mouse::WheelMouseConfig::default())
 		.build(&usb_bus);
 
-	//https://pid.codes
 	let mut usb_dev = UsbDeviceBuilder::new(&usb_bus, UsbVidPid(0x6969, 0x1234))
-		.manufacturer("Keyboard")
-		.product("Keyboard")
+		.manufacturer("ArchUsr64")
+		.product("Rusty Egboard")
 		.build();
 
 	let mut led = pins.led.into_push_pull_output();
@@ -76,9 +75,9 @@ fn main() -> ! {
 	use embedded_hal::digital::v2::{InputPin, OutputPin};
 
 	let mut col: [&mut dyn OutputPin<Error = Infallible>; 10] =
-		output_keys!(pins, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1);
+		output_keys!(pins, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4);
 	col.iter_mut().for_each(|pin| pin.set_low().unwrap());
-	let row: [&dyn InputPin<Error = Infallible>; 4] = input_keys!(pins, 11, 12, 13, 14);
+	let row: [&dyn InputPin<Error = Infallible>; 4] = input_keys!(pins, 0, 1, 2, 3);
 
 	let mut input_count_down = timer.count_down();
 	input_count_down.start(POLLING_DELAY_MS.millis());
@@ -89,7 +88,7 @@ fn main() -> ! {
 	let mut previous_state = !0;
 
 	let mut mouse_report = device::mouse::WheelMouseReport::default();
-	mouse_report.y = 5;
+	mouse_report.y = 1;
 
 	let keymap = Keymap::default();
 	loop {
@@ -108,10 +107,8 @@ fn main() -> ! {
 		previous_state = state;
 		//Poll the keys every 10ms
 		if input_count_down.wait().is_ok() {
-			// Remove the always unset bit 30 as no key is connected to it
-			let debounced_state_normalised =
-				(debounced_state & 0x3fffffff) | ((debounced_state >> 32) << 30);
-			let key_events = keymap.generate_events(keymap::key_state(debounced_state_normalised));
+			defmt::println!("State: {:040b}", debounced_state);
+			let key_events = keymap.generate_events(keymap::key_state(debounced_state));
 
 			match egboard
 				.interface::<device::keyboard::NKROBootKeyboardInterface<'_, _>, _>()
