@@ -12,27 +12,43 @@ enum ThumbKey {
 	LayerModifier(u8),
 	UpDown(Keyboard),
 }
-
+#[derive(Clone, Copy)]
+enum Direction {
+	Up,
+	Down,
+	Left,
+	Right,
+}
 #[derive(Clone, Copy)]
 enum MouseEvent {
 	LeftClick,
 	RightClick,
 	MiddleClick,
+	Cursor(Direction),
 }
 struct MouseReportBuilder {
+	cursor: (i8, i8),
 	buttons: [bool; 3],
 }
 impl MouseReportBuilder {
 	fn new() -> Self {
 		Self {
+			cursor: (0, 0),
 			buttons: [false; 3],
 		}
 	}
 	fn add_event(&mut self, mouse_event: MouseEvent) {
+		use Direction::*;
 		match mouse_event {
 			MouseEvent::LeftClick => self.buttons[0] = true,
 			MouseEvent::RightClick => self.buttons[1] = true,
 			MouseEvent::MiddleClick => self.buttons[2] = true,
+			MouseEvent::Cursor(direction) => match direction {
+				Up => self.cursor.1 -= 1,
+				Down => self.cursor.1 += 1,
+				Left => self.cursor.0 -= 1,
+				Right => self.cursor.0 += 1,
+			},
 		}
 	}
 	fn build(self) -> WheelMouseReport {
@@ -43,6 +59,8 @@ impl MouseReportBuilder {
 			.enumerate()
 			.map(|(i, pressed)| *pressed as u8 * (1 << i))
 			.sum::<u8>();
+		mouse_report.x = self.cursor.0;
+		mouse_report.y = self.cursor.1;
 		mouse_report
 	}
 }
@@ -435,7 +453,7 @@ impl Default for Keymap {
 				finger_cluster: [
 					None,
 					None,
-					None,
+					Some(FingerKey::Mouse(MouseEvent::Cursor(Direction::Up))),
 					None,
 					None,
 					None,
@@ -445,9 +463,9 @@ impl Default for Keymap {
 					None,
 					//Row 2
 					Some(FingerKey::Keyboard(Keyboard::Tab)),
-					None,
-					None,
-					None,
+					Some(FingerKey::Mouse(MouseEvent::Cursor(Direction::Left))),
+					Some(FingerKey::Mouse(MouseEvent::Cursor(Direction::Down))),
+					Some(FingerKey::Mouse(MouseEvent::Cursor(Direction::Right))),
 					Some(FingerKey::Keyboard(Keyboard::LeftGUI)),
 					Some(FingerKey::Mouse(MouseEvent::MiddleClick)),
 					Some(FingerKey::Mouse(MouseEvent::LeftClick)),
