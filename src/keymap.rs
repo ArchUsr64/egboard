@@ -1,10 +1,9 @@
 const FINGER_CLUSTER_SIZE: usize = 30;
 const THUMB_CLUSTER_SIZE: usize = 8;
 
+use crate::POLLING_DELAY_MS;
 use usbd_human_interface_device::device::mouse::WheelMouseReport;
 use usbd_human_interface_device::page::Keyboard;
-
-use crate::POLLING_DELAY_MS;
 
 #[derive(Clone, Copy)]
 enum ThumbKey {
@@ -25,16 +24,19 @@ enum MouseEvent {
 	RightClick,
 	MiddleClick,
 	Cursor(Direction),
+	SetSpeed(u8),
 }
 struct MouseReportBuilder {
 	cursor: (i8, i8),
 	buttons: [bool; 3],
+	speed: i8,
 }
 impl MouseReportBuilder {
-	fn new() -> Self {
+	fn new(default_cursor_speed: i8) -> Self {
 		Self {
 			cursor: (0, 0),
 			buttons: [false; 3],
+			speed: default_cursor_speed,
 		}
 	}
 	fn add_event(&mut self, mouse_event: MouseEvent) {
@@ -49,9 +51,10 @@ impl MouseReportBuilder {
 				Left => self.cursor.0 -= 1,
 				Right => self.cursor.0 += 1,
 			},
+			MouseEvent::SetSpeed(val) => self.speed = val as i8,
 		}
 	}
-	fn build(self) -> WheelMouseReport {
+	fn build(mut self) -> WheelMouseReport {
 		let mut mouse_report = WheelMouseReport::default();
 		mouse_report.buttons |= self
 			.buttons
@@ -59,8 +62,16 @@ impl MouseReportBuilder {
 			.enumerate()
 			.map(|(i, pressed)| *pressed as u8 * (1 << i))
 			.sum::<u8>();
-		mouse_report.x = self.cursor.0;
-		mouse_report.y = self.cursor.1;
+		//Divide by sqrt(2) if the cursor speed is two dimensional
+		if self.cursor.0 != 0 && self.cursor.1 != 0 {
+			self.speed *= 10;
+			self.speed /= 14;
+			if self.speed == 0 {
+				self.speed = 1;
+			}
+		}
+		mouse_report.x = self.cursor.0 * self.speed;
+		mouse_report.y = self.cursor.1 * self.speed;
 		mouse_report
 	}
 }
@@ -154,7 +165,7 @@ impl Keymap {
 		[Keyboard; FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE + 3],
 		WheelMouseReport,
 	) {
-		let mut report_builder = MouseReportBuilder::new();
+		let mut report_builder = MouseReportBuilder::new(8);
 		let layer = self.get_buffered_layer(key_state);
 		let mut key_events =
 			[Keyboard::NoEventIndicated; FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE + 3];
@@ -396,7 +407,7 @@ impl Default for Keymap {
 					Some(ThumbKey::UpDown(Keyboard::Escape)),
 					Some(ThumbKey::OneShotModifier(Modifier::Alt)),
 					Some(ThumbKey::LayerModifier(2)),
-					Some(ThumbKey::UpDown(Keyboard::LeftShift)),
+					Some(ThumbKey::OneShotModifier(Modifier::Shift)),
 					Some(ThumbKey::UpDown(Keyboard::Space)),
 					Some(ThumbKey::LayerModifier(1)),
 					Some(ThumbKey::OneShotModifier(Modifier::Control)),
@@ -460,7 +471,7 @@ impl Default for Keymap {
 					None,
 					None,
 					None,
-					None,
+					Some(FingerKey::Mouse(MouseEvent::SetSpeed(12))),
 					//Row 2
 					Some(FingerKey::Keyboard(Keyboard::Tab)),
 					Some(FingerKey::Mouse(MouseEvent::Cursor(Direction::Left))),
@@ -471,7 +482,7 @@ impl Default for Keymap {
 					Some(FingerKey::Mouse(MouseEvent::LeftClick)),
 					Some(FingerKey::Mouse(MouseEvent::RightClick)),
 					Some(FingerKey::Keyboard(Keyboard::ReturnEnter)),
-					None,
+					Some(FingerKey::Mouse(MouseEvent::SetSpeed(2))),
 					//Row 3
 					None,
 					None,
@@ -482,7 +493,7 @@ impl Default for Keymap {
 					None,
 					None,
 					None,
-					None,
+					Some(FingerKey::Mouse(MouseEvent::SetSpeed(1))),
 				],
 				thumb_cluster: [
 					None,

@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 
-pub const POLLING_DELAY_MS: u32 = 1;
+pub const POLLING_DELAY_MS: u32 = 5;
 pub const DEBOUNCE_BUFFER_SIZE: usize = 16;
 
 mod keymap;
