@@ -1,6 +1,7 @@
 const FINGER_CLUSTER_SIZE: usize = 30;
 const THUMB_CLUSTER_SIZE: usize = 8;
 
+use usbd_human_interface_device::device::mouse::WheelMouseReport;
 use usbd_human_interface_device::page::Keyboard;
 
 use crate::POLLING_DELAY_MS;
@@ -13,11 +14,51 @@ enum ThumbKey {
 }
 
 #[derive(Clone, Copy)]
+enum MouseEvent {
+	LeftClick,
+	RightClick,
+	MiddleClick,
+}
+struct MouseReportBuilder {
+	buttons: [bool; 3],
+}
+impl MouseReportBuilder {
+	fn new() -> Self {
+		Self {
+			buttons: [false; 3],
+		}
+	}
+	fn add_event(&mut self, mouse_event: MouseEvent) {
+		match mouse_event {
+			MouseEvent::LeftClick => self.buttons[0] = true,
+			MouseEvent::RightClick => self.buttons[1] = true,
+			MouseEvent::MiddleClick => self.buttons[2] = true,
+		}
+	}
+	fn build(self) -> WheelMouseReport {
+		let mut mouse_report = WheelMouseReport::default();
+		mouse_report.buttons |= self
+			.buttons
+			.iter()
+			.enumerate()
+			.map(|(i, pressed)| *pressed as u8 * (1 << i))
+			.sum::<u8>();
+		mouse_report
+	}
+}
+
+#[derive(Clone, Copy)]
+enum FingerKey {
+	Keyboard(Keyboard),
+	Mouse(MouseEvent),
+}
+
+#[derive(Clone, Copy)]
 pub struct Layer {
 	finger_cluster: FingerLayer,
 	thumb_cluster: ThumbLayer,
 }
-type FingerLayer = [Option<Keyboard>; FINGER_CLUSTER_SIZE];
+type FingerLayer = [Option<FingerKey>; FINGER_CLUSTER_SIZE];
 type ThumbLayer = [Option<ThumbKey>; THUMB_CLUSTER_SIZE];
 impl Layer {
 	pub const fn new() -> Self {
@@ -91,20 +132,28 @@ impl Keymap {
 	pub fn generate_events(
 		&self,
 		key_state: KeyState,
-	) -> [Keyboard; FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE + 3] {
+	) -> (
+		[Keyboard; FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE + 3],
+		WheelMouseReport,
+	) {
+		let mut report_builder = MouseReportBuilder::new();
 		let layer = self.get_buffered_layer(key_state);
-		let mut result = [Keyboard::NoEventIndicated; FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE + 3];
+		let mut key_events =
+			[Keyboard::NoEventIndicated; FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE + 3];
 
-		result[0..FINGER_CLUSTER_SIZE]
+		key_events[0..FINGER_CLUSTER_SIZE]
 			.iter_mut()
 			.enumerate()
 			.filter(|(i, _)| key_state.finger_cluster[*i])
 			.for_each(|(index, event)| {
 				let key = layer.finger_cluster[index]
 					.unwrap_or(self.default_layer().finger_cluster[index].unwrap());
-				*event = key;
+				match key {
+					FingerKey::Keyboard(key) => *event = key,
+					FingerKey::Mouse(mouse_event) => report_builder.add_event(mouse_event),
+				}
 			});
-		result[FINGER_CLUSTER_SIZE..FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE]
+		key_events[FINGER_CLUSTER_SIZE..FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE]
 			.iter_mut()
 			.enumerate()
 			.filter(|(i, _)| key_state.thumb_cluster[*i])
@@ -115,16 +164,16 @@ impl Keymap {
 					*event = key
 				}
 			});
-		let any_key_pressed = result
+		let any_key_pressed = key_events
 			.iter()
 			.filter(|event| **event != Keyboard::NoEventIndicated)
 			.count() > 0;
 		let thumb_events = self.generate_thumb_events(key_state.thumb_cluster, any_key_pressed);
-		result[FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE..]
+		key_events[FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE..]
 			.iter_mut()
 			.enumerate()
 			.for_each(|(i, key)| *key = thumb_events[i]);
-		result
+		(key_events, report_builder.build())
 	}
 
 	fn generate_thumb_events(&self, state: ThumbState, other_key_pressed: bool) -> [Keyboard; 3] {
@@ -292,38 +341,38 @@ impl Default for Keymap {
 			.add_layer(Layer {
 				finger_cluster: [
 					//Row 1
-					Some(Keyboard::Q),
-					Some(Keyboard::W),
-					Some(Keyboard::E),
-					Some(Keyboard::R),
-					Some(Keyboard::T),
-					Some(Keyboard::Y),
-					Some(Keyboard::U),
-					Some(Keyboard::I),
-					Some(Keyboard::O),
-					Some(Keyboard::P),
+					Some(FingerKey::Keyboard(Keyboard::Q)),
+					Some(FingerKey::Keyboard(Keyboard::W)),
+					Some(FingerKey::Keyboard(Keyboard::E)),
+					Some(FingerKey::Keyboard(Keyboard::R)),
+					Some(FingerKey::Keyboard(Keyboard::T)),
+					Some(FingerKey::Keyboard(Keyboard::Y)),
+					Some(FingerKey::Keyboard(Keyboard::U)),
+					Some(FingerKey::Keyboard(Keyboard::I)),
+					Some(FingerKey::Keyboard(Keyboard::O)),
+					Some(FingerKey::Keyboard(Keyboard::P)),
 					//Row 2
-					Some(Keyboard::A),
-					Some(Keyboard::S),
-					Some(Keyboard::D),
-					Some(Keyboard::F),
-					Some(Keyboard::G),
-					Some(Keyboard::H),
-					Some(Keyboard::J),
-					Some(Keyboard::K),
-					Some(Keyboard::L),
-					Some(Keyboard::Semicolon),
+					Some(FingerKey::Keyboard(Keyboard::A)),
+					Some(FingerKey::Keyboard(Keyboard::S)),
+					Some(FingerKey::Keyboard(Keyboard::D)),
+					Some(FingerKey::Keyboard(Keyboard::F)),
+					Some(FingerKey::Keyboard(Keyboard::G)),
+					Some(FingerKey::Keyboard(Keyboard::H)),
+					Some(FingerKey::Keyboard(Keyboard::J)),
+					Some(FingerKey::Keyboard(Keyboard::K)),
+					Some(FingerKey::Keyboard(Keyboard::L)),
+					Some(FingerKey::Keyboard(Keyboard::Semicolon)),
 					//Row 3
-					Some(Keyboard::Z),
-					Some(Keyboard::X),
-					Some(Keyboard::C),
-					Some(Keyboard::V),
-					Some(Keyboard::B),
-					Some(Keyboard::N),
-					Some(Keyboard::M),
-					Some(Keyboard::Comma),
-					Some(Keyboard::Dot),
-					Some(Keyboard::ForwardSlash),
+					Some(FingerKey::Keyboard(Keyboard::Z)),
+					Some(FingerKey::Keyboard(Keyboard::X)),
+					Some(FingerKey::Keyboard(Keyboard::C)),
+					Some(FingerKey::Keyboard(Keyboard::V)),
+					Some(FingerKey::Keyboard(Keyboard::B)),
+					Some(FingerKey::Keyboard(Keyboard::N)),
+					Some(FingerKey::Keyboard(Keyboard::M)),
+					Some(FingerKey::Keyboard(Keyboard::Comma)),
+					Some(FingerKey::Keyboard(Keyboard::Dot)),
+					Some(FingerKey::Keyboard(Keyboard::ForwardSlash)),
 				],
 				thumb_cluster: [
 					Some(ThumbKey::UpDown(Keyboard::Escape)),
@@ -338,35 +387,35 @@ impl Default for Keymap {
 			})
 			.add_layer(Layer {
 				finger_cluster: [
-					Some(Keyboard::Grave),
-					Some(Keyboard::LeftBrace),
-					Some(Keyboard::RightBrace),
-					Some(Keyboard::Minus),
-					Some(Keyboard::Equal),
-					Some(Keyboard::LeftArrow),
-					Some(Keyboard::DownArrow),
-					Some(Keyboard::UpArrow),
-					Some(Keyboard::RightArrow),
-					Some(Keyboard::Backslash),
+					Some(FingerKey::Keyboard(Keyboard::Grave)),
+					Some(FingerKey::Keyboard(Keyboard::LeftBrace)),
+					Some(FingerKey::Keyboard(Keyboard::RightBrace)),
+					Some(FingerKey::Keyboard(Keyboard::Minus)),
+					Some(FingerKey::Keyboard(Keyboard::Equal)),
+					Some(FingerKey::Keyboard(Keyboard::LeftArrow)),
+					Some(FingerKey::Keyboard(Keyboard::DownArrow)),
+					Some(FingerKey::Keyboard(Keyboard::UpArrow)),
+					Some(FingerKey::Keyboard(Keyboard::RightArrow)),
+					Some(FingerKey::Keyboard(Keyboard::Backslash)),
 					//Row 2
-					Some(Keyboard::Keyboard1),
-					Some(Keyboard::Keyboard2),
-					Some(Keyboard::Keyboard3),
-					Some(Keyboard::Keyboard4),
-					Some(Keyboard::Keyboard5),
-					Some(Keyboard::Keyboard6),
-					Some(Keyboard::Keyboard7),
-					Some(Keyboard::Keyboard8),
-					Some(Keyboard::Keyboard9),
-					Some(Keyboard::Keyboard0),
+					Some(FingerKey::Keyboard(Keyboard::Keyboard1)),
+					Some(FingerKey::Keyboard(Keyboard::Keyboard2)),
+					Some(FingerKey::Keyboard(Keyboard::Keyboard3)),
+					Some(FingerKey::Keyboard(Keyboard::Keyboard4)),
+					Some(FingerKey::Keyboard(Keyboard::Keyboard5)),
+					Some(FingerKey::Keyboard(Keyboard::Keyboard6)),
+					Some(FingerKey::Keyboard(Keyboard::Keyboard7)),
+					Some(FingerKey::Keyboard(Keyboard::Keyboard8)),
+					Some(FingerKey::Keyboard(Keyboard::Keyboard9)),
+					Some(FingerKey::Keyboard(Keyboard::Keyboard0)),
 					//Row 3
 					None,
 					None,
 					None,
-					Some(Keyboard::Escape),
+					Some(FingerKey::Keyboard(Keyboard::Escape)),
 					None,
 					None,
-					Some(Keyboard::Apostrophe),
+					Some(FingerKey::Keyboard(Keyboard::Apostrophe)),
 					None,
 					None,
 					None,
@@ -395,21 +444,21 @@ impl Default for Keymap {
 					None,
 					None,
 					//Row 2
-					Some(Keyboard::Tab),
+					Some(FingerKey::Keyboard(Keyboard::Tab)),
 					None,
 					None,
 					None,
-					Some(Keyboard::LeftGUI),
-					None,
-					None,
-					None,
-					Some(Keyboard::ReturnEnter),
+					Some(FingerKey::Keyboard(Keyboard::LeftGUI)),
+					Some(FingerKey::Mouse(MouseEvent::MiddleClick)),
+					Some(FingerKey::Mouse(MouseEvent::LeftClick)),
+					Some(FingerKey::Mouse(MouseEvent::RightClick)),
+					Some(FingerKey::Keyboard(Keyboard::ReturnEnter)),
 					None,
 					//Row 3
 					None,
 					None,
 					None,
-					Some(Keyboard::Escape),
+					Some(FingerKey::Keyboard(Keyboard::Escape)),
 					None,
 					None,
 					None,
@@ -430,35 +479,35 @@ impl Default for Keymap {
 			})
 			.add_layer(Layer {
 				finger_cluster: [
-					Some(Keyboard::Mute),
-					Some(Keyboard::VolumeDown),
-					Some(Keyboard::VolumeUp),
-					Some(Keyboard::Insert),
-					Some(Keyboard::PrintScreen),
-					Some(Keyboard::Home),
-					Some(Keyboard::PageDown),
-					Some(Keyboard::PageUp),
-					Some(Keyboard::End),
-					Some(Keyboard::CapsLock),
+					Some(FingerKey::Keyboard(Keyboard::Mute)),
+					Some(FingerKey::Keyboard(Keyboard::VolumeDown)),
+					Some(FingerKey::Keyboard(Keyboard::VolumeUp)),
+					Some(FingerKey::Keyboard(Keyboard::Insert)),
+					Some(FingerKey::Keyboard(Keyboard::PrintScreen)),
+					Some(FingerKey::Keyboard(Keyboard::Home)),
+					Some(FingerKey::Keyboard(Keyboard::PageDown)),
+					Some(FingerKey::Keyboard(Keyboard::PageUp)),
+					Some(FingerKey::Keyboard(Keyboard::End)),
+					Some(FingerKey::Keyboard(Keyboard::CapsLock)),
 					//Row 2
-					Some(Keyboard::F1),
-					Some(Keyboard::F2),
-					Some(Keyboard::F3),
-					Some(Keyboard::F4),
-					Some(Keyboard::F5),
-					Some(Keyboard::F6),
-					Some(Keyboard::F7),
-					Some(Keyboard::F8),
-					Some(Keyboard::F9),
-					Some(Keyboard::F10),
+					Some(FingerKey::Keyboard(Keyboard::F1)),
+					Some(FingerKey::Keyboard(Keyboard::F2)),
+					Some(FingerKey::Keyboard(Keyboard::F3)),
+					Some(FingerKey::Keyboard(Keyboard::F4)),
+					Some(FingerKey::Keyboard(Keyboard::F5)),
+					Some(FingerKey::Keyboard(Keyboard::F6)),
+					Some(FingerKey::Keyboard(Keyboard::F7)),
+					Some(FingerKey::Keyboard(Keyboard::F8)),
+					Some(FingerKey::Keyboard(Keyboard::F9)),
+					Some(FingerKey::Keyboard(Keyboard::F10)),
 					//Row 3
 					None,
 					None,
 					None,
-					Some(Keyboard::F11),
+					Some(FingerKey::Keyboard(Keyboard::F11)),
 					None,
 					None,
-					Some(Keyboard::F12),
+					Some(FingerKey::Keyboard(Keyboard::F12)),
 					None,
 					None,
 					None,

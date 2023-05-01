@@ -88,8 +88,6 @@ fn main() -> ! {
 	let mut tick_count_down = timer.count_down();
 	tick_count_down.start(1.millis());
 
-	let mut mouse_report = device::mouse::WheelMouseReport::default();
-	mouse_report.y = 1;
 	let mut state_buffer = Vec::<_, DEBOUNCE_BUFFER_SIZE>::new();
 	(0..DEBOUNCE_BUFFER_SIZE).for_each(|_| {
 		let _ = state_buffer.push(0);
@@ -115,7 +113,8 @@ fn main() -> ! {
 		let debounced_state = state_buffer.iter().fold(!0, |acc, x| acc & x);
 		//Poll the keys every 10ms
 		if input_count_down.wait().is_ok() {
-			let key_events = keymap.generate_events(keymap::key_state(debounced_state));
+			let (key_events, mouse_report) =
+				keymap.generate_events(keymap::key_state(debounced_state));
 
 			match egboard
 				.interface::<device::keyboard::NKROBootKeyboardInterface<'_, _>, _>()
@@ -126,6 +125,17 @@ fn main() -> ! {
 				Ok(_) => {}
 				Err(e) => {
 					panic!("Failed to write keyboard report: {:?}", e)
+				}
+			};
+
+			match egboard
+				.interface::<device::mouse::WheelMouseInterface<'_, _>, _>()
+				.write_report(&mouse_report)
+			{
+				Err(UsbHidError::WouldBlock) => {}
+				Ok(_) => {}
+				Err(e) => {
+					core::panic!("Failed to write mouse report: {:?}", e)
 				}
 			};
 		}
@@ -143,17 +153,6 @@ fn main() -> ! {
 				}
 			};
 		}
-
-		let mouse = egboard.interface::<device::mouse::WheelMouseInterface<'_, _>, _>();
-		mouse_report.y *= -1;
-
-		match mouse.write_report(&mouse_report) {
-			Err(UsbHidError::WouldBlock) => {}
-			Ok(_) => {}
-			Err(e) => {
-				core::panic!("Failed to write mouse report: {:?}", e)
-			}
-		};
 
 		if usb_dev.poll(&mut [&mut egboard]) {
 			match egboard
