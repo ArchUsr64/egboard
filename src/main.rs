@@ -1,7 +1,8 @@
 #![no_std]
 #![no_main]
 
-pub const POLLING_DELAY_MS: u32 = 10;
+pub const POLLING_DELAY_MS: u32 = 1;
+pub const DEBOUNCE_BUFFER_SIZE: usize = 16;
 
 mod keymap;
 mod keys_macro;
@@ -15,12 +16,14 @@ use rp_pico::{entry, hal};
 use embedded_hal::digital::v2::*;
 use embedded_hal::prelude::*;
 use fugit::ExtU32;
+use heapless::Vec;
 use usb_device::class_prelude::*;
 use usb_device::prelude::*;
 use usbd_human_interface_device::prelude::*;
 
 #[entry]
 fn main() -> ! {
+	defmt::println!("Started main");
 	use cortex_m::delay::Delay;
 	use rp_pico::hal::{
 		pac::{CorePeripherals, Peripherals},
@@ -85,13 +88,17 @@ fn main() -> ! {
 	let mut tick_count_down = timer.count_down();
 	tick_count_down.start(1.millis());
 
-	let mut previous_state = !0;
-
 	let mut mouse_report = device::mouse::WheelMouseReport::default();
 	mouse_report.y = 1;
+	let mut state_buffer = Vec::<_, DEBOUNCE_BUFFER_SIZE>::new();
+	(0..DEBOUNCE_BUFFER_SIZE).for_each(|_| {
+		let _ = state_buffer.push(0);
+	});
 
 	let keymap = Keymap::default();
+
 	loop {
+		state_buffer.remove(0);
 		let mut state = 0;
 		for (i, col_pin) in col.iter_mut().enumerate() {
 			for (j, row_pin) in row.iter().enumerate() {
@@ -103,11 +110,11 @@ fn main() -> ! {
 				let _ = col_pin.set_low();
 			}
 		}
-		let debounced_state = state & previous_state;
-		previous_state = state;
+
+		let _ = state_buffer.push(state);
+		let debounced_state = state_buffer.iter().fold(!0, |acc, x| acc & x);
 		//Poll the keys every 10ms
 		if input_count_down.wait().is_ok() {
-			defmt::println!("State: {:040b}", debounced_state);
 			let key_events = keymap.generate_events(keymap::key_state(debounced_state));
 
 			match egboard

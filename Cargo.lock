@@ -167,6 +167,7 @@ dependencies = [
  "defmt-rtt",
  "embedded-hal",
  "fugit",
+ "heapless",
  "rp-pico",
  "usb-device",
  "usbd-human-interface-device",

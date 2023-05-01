@@ -15,8 +15,13 @@ defmt-rtt = "0.4.0"
 usbd-human-interface-device = { git = "https://github.com/dlkj/usbd-human-interface-device" }
 usb-device = "0.2.9"
 fugit = "0.3.6"
+heapless = "0.7.16"
 
 [[bin]]
 name = "egboard"
 test = false
 harness = false
+
+[profile.release]
+opt-level = "z"
+lto = true
