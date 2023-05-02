@@ -86,7 +86,7 @@ impl MouseReportBuilder {
 		//Divide by sqrt(2) if the cursor speed is two dimensional
 		let mut cursor_speed = self.speed;
 		if self.cursor.0 != 0 && self.cursor.1 != 0 {
-			cursor_speed *= 10;
+			cursor_speed = cursor_speed.saturating_mul(10);
 			cursor_speed /= 14;
 			if cursor_speed == 0 {
 				cursor_speed = 1;
@@ -191,7 +191,7 @@ impl Keymap {
 		[Keyboard; FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE + 3],
 		WheelMouseReport,
 	) {
-		let mut report_builder = MouseReportBuilder::new(8);
+		let mut report_builder = MouseReportBuilder::new(10);
 		let layer = self.get_buffered_layer(key_state);
 		let mut key_events =
 			[Keyboard::NoEventIndicated; FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE + 3];
@@ -497,7 +497,7 @@ impl Default for Keymap {
 					Some(FingerKey::Mouse(MouseEvent::Scroll(Direction::Down))),
 					Some(FingerKey::Mouse(MouseEvent::Scroll(Direction::Up))),
 					Some(FingerKey::Mouse(MouseEvent::Scroll(Direction::Right))),
-					Some(FingerKey::Mouse(MouseEvent::SetSpeed(12))),
+					Some(FingerKey::Mouse(MouseEvent::SetSpeed(16))),
 					//Row 2
 					Some(FingerKey::Keyboard(Keyboard::Tab)),
 					Some(FingerKey::Mouse(MouseEvent::Cursor(Direction::Left))),
