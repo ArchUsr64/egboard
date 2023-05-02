@@ -1,7 +1,7 @@
 const FINGER_CLUSTER_SIZE: usize = 30;
 const THUMB_CLUSTER_SIZE: usize = 8;
 
-use crate::POLLING_DELAY_MS;
+use crate::USB_POLLING_DELAY_MS;
 use usbd_human_interface_device::device::mouse::WheelMouseReport;
 use usbd_human_interface_device::page::Keyboard;
 
@@ -24,17 +24,33 @@ enum MouseEvent {
 	RightClick,
 	MiddleClick,
 	Cursor(Direction),
+	Scroll(Direction),
 	SetSpeed(u8),
 }
 struct MouseReportBuilder {
 	cursor: (i8, i8),
+	scroll: (i8, i8),
 	buttons: [bool; 3],
 	speed: i8,
 }
 impl MouseReportBuilder {
+	//To match(QMK)
+	//Cursor speed benchmarks from https://cps-check.com/mouse-acceleration
+	//Default => 1530px/s
+	//Speed 0 => 20px/s
+	//Speed 1 => 240px/s
+	//Speed 2 => 3840px/s
+	//
+	//Scroll benchmarks from https://cpstest.org/scroll-test.php
+	//Default => 2880px/s
+	//Speed 0 => 360px/s
+	//Speed 1 => 960px/s
+	//Speed 2 => 5640px/s
+
 	fn new(default_cursor_speed: i8) -> Self {
 		Self {
 			cursor: (0, 0),
+			scroll: (0, 0),
 			buttons: [false; 3],
 			speed: default_cursor_speed,
 		}
@@ -51,28 +67,38 @@ impl MouseReportBuilder {
 				Left => self.cursor.0 -= 1,
 				Right => self.cursor.0 += 1,
 			},
+			MouseEvent::Scroll(direction) => match direction {
+				Up => self.scroll.1 += 1,
+				Down => self.scroll.1 -= 1,
+				Left => self.scroll.0 -= 1,
+				Right => self.scroll.0 += 1,
+			},
 			MouseEvent::SetSpeed(val) => self.speed = val as i8,
 		}
 	}
-	fn build(mut self) -> WheelMouseReport {
-		let mut mouse_report = WheelMouseReport::default();
-		mouse_report.buttons |= self
+	fn build(self) -> WheelMouseReport {
+		let buttons = self
 			.buttons
 			.iter()
 			.enumerate()
 			.map(|(i, pressed)| *pressed as u8 * (1 << i))
 			.sum::<u8>();
 		//Divide by sqrt(2) if the cursor speed is two dimensional
+		let mut cursor_speed = self.speed;
 		if self.cursor.0 != 0 && self.cursor.1 != 0 {
-			self.speed *= 10;
-			self.speed /= 14;
-			if self.speed == 0 {
-				self.speed = 1;
+			cursor_speed *= 10;
+			cursor_speed /= 14;
+			if cursor_speed == 0 {
+				cursor_speed = 1;
 			}
 		}
-		mouse_report.x = self.cursor.0 * self.speed;
-		mouse_report.y = self.cursor.1 * self.speed;
-		mouse_report
+		WheelMouseReport {
+			buttons,
+			x: self.cursor.0 * cursor_speed,
+			y: self.cursor.1 * cursor_speed,
+			vertical_wheel: self.scroll.1,
+			horizontal_wheel: self.scroll.0,
+		}
 	}
 }
 
@@ -255,7 +281,7 @@ impl ModKey {
 		}
 	}
 	fn key_held(&self, state: bool) -> bool {
-		const HOLD_TIMER: u32 = 300 / POLLING_DELAY_MS;
+		const HOLD_TIMER: u32 = 300 / USB_POLLING_DELAY_MS;
 		self.released_since > HOLD_TIMER && state
 	}
 	fn tick(&mut self, pressed: bool) {
@@ -467,10 +493,10 @@ impl Default for Keymap {
 					Some(FingerKey::Mouse(MouseEvent::Cursor(Direction::Up))),
 					None,
 					None,
-					None,
-					None,
-					None,
-					None,
+					Some(FingerKey::Mouse(MouseEvent::Scroll(Direction::Left))),
+					Some(FingerKey::Mouse(MouseEvent::Scroll(Direction::Down))),
+					Some(FingerKey::Mouse(MouseEvent::Scroll(Direction::Up))),
+					Some(FingerKey::Mouse(MouseEvent::Scroll(Direction::Right))),
 					Some(FingerKey::Mouse(MouseEvent::SetSpeed(12))),
 					//Row 2
 					Some(FingerKey::Keyboard(Keyboard::Tab)),

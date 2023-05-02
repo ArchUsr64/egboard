@@ -1,8 +1,8 @@
 #![no_std]
 #![no_main]
 
-pub const POLLING_DELAY_MS: u32 = 5;
-pub const DEBOUNCE_BUFFER_SIZE: usize = 16;
+pub const USB_POLLING_DELAY_MS: u32 = 1;
+pub const DEBOUNCE_BUFFER_SIZE: usize = 64;
 
 mod keymap;
 mod keys_macro;
@@ -82,8 +82,8 @@ fn main() -> ! {
 	col.iter_mut().for_each(|pin| pin.set_low().unwrap());
 	let row: [&dyn InputPin<Error = Infallible>; 4] = input_keys!(pins, 0, 1, 2, 3);
 
-	let mut input_count_down = timer.count_down();
-	input_count_down.start(POLLING_DELAY_MS.millis());
+	let mut usb_polling_count_down = timer.count_down();
+	usb_polling_count_down.start(USB_POLLING_DELAY_MS.millis());
 
 	let mut tick_count_down = timer.count_down();
 	tick_count_down.start(1.millis());
@@ -108,11 +108,10 @@ fn main() -> ! {
 				let _ = col_pin.set_low();
 			}
 		}
-
 		let _ = state_buffer.push(state);
-		let debounced_state = state_buffer.iter().fold(!0, |acc, x| acc & x);
-		//Poll the keys every 10ms
-		if input_count_down.wait().is_ok() {
+
+		if usb_polling_count_down.wait().is_ok() {
+			let debounced_state = state_buffer.iter().fold(!0, |acc, x| acc & x);
 			let (key_events, mouse_report) =
 				keymap.generate_events(keymap::key_state(debounced_state));
 
