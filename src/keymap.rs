@@ -12,6 +12,34 @@ enum ThumbKey {
 	UpDown(Keyboard),
 }
 #[derive(Clone, Copy)]
+struct ScrollKey {
+	previous_state: bool,
+	pressed_since: u32,
+}
+impl ScrollKey {
+	const fn new() -> Self {
+		Self {
+			previous_state: false,
+			pressed_since: 0,
+		}
+	}
+	fn fire(&mut self, pressed: bool) -> bool {
+		let result;
+		const HOLD_TIMER: u32 = 300 / USB_POLLING_DELAY_MS;
+		match (pressed, self.previous_state) {
+			(true, true) => self.pressed_since += 1,
+			_ => self.pressed_since = 0,
+		}
+		result = if self.pressed_since > HOLD_TIMER || (pressed & !self.previous_state) {
+			true
+		} else {
+			false
+		};
+		self.previous_state = pressed;
+		result
+	}
+}
+#[derive(Clone, Copy)]
 enum Direction {
 	Up,
 	Down,
@@ -29,11 +57,13 @@ enum MouseEvent {
 }
 struct MouseReportBuilder {
 	cursor: (i8, i8),
-	scroll: (i8, i8),
 	buttons: [bool; 3],
+	scroll_keys: [ScrollKey; 4],
+	scroll_key_state: [bool; 4],
 	speed: i8,
 }
 impl MouseReportBuilder {
+	const DEFAULT_SPEED: i8 = 10;
 	//To match(QMK)
 	//Cursor speed benchmarks from https://cps-check.com/mouse-acceleration
 	//Default => 1530px/s
@@ -47,14 +77,16 @@ impl MouseReportBuilder {
 	//Speed 1 => 960px/s
 	//Speed 2 => 5640px/s
 
-	fn new(default_cursor_speed: i8) -> Self {
+	const fn new() -> Self {
 		Self {
 			cursor: (0, 0),
-			scroll: (0, 0),
 			buttons: [false; 3],
-			speed: default_cursor_speed,
+			scroll_keys: [ScrollKey::new(); 4],
+			scroll_key_state: [false; 4],
+			speed: Self::DEFAULT_SPEED,
 		}
 	}
+
 	fn add_event(&mut self, mouse_event: MouseEvent) {
 		use Direction::*;
 		match mouse_event {
@@ -68,15 +100,20 @@ impl MouseReportBuilder {
 				Right => self.cursor.0 += 1,
 			},
 			MouseEvent::Scroll(direction) => match direction {
-				Up => self.scroll.1 += 1,
-				Down => self.scroll.1 -= 1,
-				Left => self.scroll.0 -= 1,
-				Right => self.scroll.0 += 1,
+				Up => self.scroll_key_state[0] = true,
+				Down => self.scroll_key_state[1] = true,
+				Left => self.scroll_key_state[2] = true,
+				Right => self.scroll_key_state[3] = true,
 			},
 			MouseEvent::SetSpeed(val) => self.speed = val as i8,
 		}
 	}
-	fn build(self) -> WheelMouseReport {
+
+	fn build(&mut self) -> WheelMouseReport {
+		self.scroll_key_state
+			.iter_mut()
+			.enumerate()
+			.for_each(|(i, pressed)| *pressed = self.scroll_keys[i].fire(*pressed));
 		let buttons = self
 			.buttons
 			.iter()
@@ -92,13 +129,24 @@ impl MouseReportBuilder {
 				cursor_speed = 1;
 			}
 		}
-		WheelMouseReport {
+		self.speed = 1;
+		let vertical_wheel =
+			(self.scroll_key_state[0] as i8 - self.scroll_key_state[1] as i8) * self.speed;
+		let horizontal_wheel =
+			(self.scroll_key_state[2] as i8 - self.scroll_key_state[3] as i8) * self.speed;
+		defmt::println!("{}, {}", vertical_wheel, horizontal_wheel);
+		let report = WheelMouseReport {
 			buttons,
 			x: self.cursor.0 * cursor_speed,
 			y: self.cursor.1 * cursor_speed,
-			vertical_wheel: self.scroll.1,
-			horizontal_wheel: self.scroll.0,
-		}
+			vertical_wheel,
+			horizontal_wheel,
+		};
+		*self = Self {
+			scroll_keys: self.scroll_keys,
+			..Self::new()
+		};
+		report
 	}
 }
 
@@ -191,7 +239,7 @@ impl Keymap {
 		[Keyboard; FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE + 3],
 		WheelMouseReport,
 	) {
-		let mut report_builder = MouseReportBuilder::new(10);
+		static mut MOUSE_REPORT_BUILDER: MouseReportBuilder = MouseReportBuilder::new();
 		let layer = self.get_buffered_layer(key_state);
 		let mut key_events =
 			[Keyboard::NoEventIndicated; FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE + 3];
@@ -205,7 +253,9 @@ impl Keymap {
 					.unwrap_or(self.default_layer().finger_cluster[index].unwrap());
 				match key {
 					FingerKey::Keyboard(key) => *event = key,
-					FingerKey::Mouse(mouse_event) => report_builder.add_event(mouse_event),
+					FingerKey::Mouse(mouse_event) => unsafe {
+						MOUSE_REPORT_BUILDER.add_event(mouse_event)
+					},
 				}
 			});
 		key_events[FINGER_CLUSTER_SIZE..FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE]
@@ -228,7 +278,7 @@ impl Keymap {
 			.iter_mut()
 			.enumerate()
 			.for_each(|(i, key)| *key = thumb_events[i]);
-		(key_events, report_builder.build())
+		unsafe { (key_events, MOUSE_REPORT_BUILDER.build()) }
 	}
 
 	fn generate_thumb_events(&self, state: ThumbState, other_key_pressed: bool) -> [Keyboard; 3] {
