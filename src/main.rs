@@ -19,11 +19,11 @@ use fugit::ExtU32;
 use heapless::Vec;
 use usb_device::class_prelude::*;
 use usb_device::prelude::*;
+use usbd_human_interface_device::device::mouse::WheelMouseReport;
 use usbd_human_interface_device::prelude::*;
 
 #[entry]
 fn main() -> ! {
-	defmt::println!("Started main");
 	use cortex_m::delay::Delay;
 	use rp_pico::hal::{
 		pac::{CorePeripherals, Peripherals},
@@ -127,16 +127,18 @@ fn main() -> ! {
 				}
 			};
 
-			match egboard
-				.interface::<device::mouse::WheelMouseInterface<'_, _>, _>()
-				.write_report(&mouse_report)
-			{
-				Err(UsbHidError::WouldBlock) => {}
-				Ok(_) => {}
-				Err(e) => {
-					core::panic!("Failed to write mouse report: {:?}", e)
-				}
-			};
+			if WheelMouseReport::default() != mouse_report {
+				match egboard
+					.interface::<device::mouse::WheelMouseInterface<'_, _>, _>()
+					.write_report(&mouse_report)
+				{
+					Err(UsbHidError::WouldBlock) => {}
+					Ok(_) => {}
+					Err(e) => {
+						core::panic!("Failed to write mouse report: {:?}", e)
+					}
+				};
+			}
 		}
 
 		//Tick once per ms

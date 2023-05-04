@@ -131,7 +131,6 @@ impl MouseReportBuilder {
 		}
 		let vertical_wheel = self.scroll_key_state[0] as i8 - self.scroll_key_state[1] as i8;
 		let horizontal_wheel = self.scroll_key_state[3] as i8 - self.scroll_key_state[2] as i8;
-		defmt::println!("{}, {}", vertical_wheel, horizontal_wheel);
 		let report = WheelMouseReport {
 			buttons,
 			x: self.cursor.0 * cursor_speed,
