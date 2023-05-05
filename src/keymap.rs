@@ -237,8 +237,7 @@ impl Keymap {
 	) {
 		static mut MOUSE_REPORT_BUILDER: MouseReportBuilder = MouseReportBuilder::new();
 		let layer = self.get_buffered_layer(key_state);
-		let mut key_events =
-			[Keyboard::NoEventIndicated; FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE + 3];
+		let mut key_events = [Keyboard::default(); FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE + 3];
 
 		key_events[0..FINGER_CLUSTER_SIZE]
 			.iter_mut()
@@ -267,7 +266,7 @@ impl Keymap {
 			});
 		let any_key_pressed = key_events
 			.iter()
-			.filter(|event| **event != Keyboard::NoEventIndicated)
+			.filter(|event| **event != Keyboard::default())
 			.count() > 0;
 		let thumb_events = self.generate_thumb_events(key_state.thumb_cluster, any_key_pressed);
 		key_events[FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE..]
@@ -366,7 +365,7 @@ impl ModKey {
 				};
 				event
 			}
-			(Released, _) | (Ready, false) => Keyboard::NoEventIndicated,
+			(Released, _) | (Ready, false) => Keyboard::default(),
 			_ => event,
 		}
 	}
