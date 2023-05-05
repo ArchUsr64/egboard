@@ -94,6 +94,11 @@ fn main() -> ! {
 	});
 
 	let keymap = Keymap::default();
+	let empty_mouse_report = WheelMouseReport::default();
+	let mut previous_mouse_report = WheelMouseReport {
+		buttons: 128,
+		..empty_mouse_report
+	};
 
 	loop {
 		state_buffer.remove(0);
@@ -127,7 +132,10 @@ fn main() -> ! {
 				}
 			};
 
-			if WheelMouseReport::default() != mouse_report {
+			fn scroll_event(event: WheelMouseReport) -> bool {
+				return event.horizontal_wheel != 0 || event.vertical_wheel != 0;
+			}
+			if !(mouse_report == empty_mouse_report && scroll_event(previous_mouse_report)) {
 				match egboard
 					.interface::<device::mouse::WheelMouseInterface<'_, _>, _>()
 					.write_report(&mouse_report)
@@ -138,6 +146,7 @@ fn main() -> ! {
 						core::panic!("Failed to write mouse report: {:?}", e)
 					}
 				};
+				previous_mouse_report = mouse_report;
 			}
 		}
 
