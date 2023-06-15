@@ -232,12 +232,12 @@ impl Keymap {
 		&self,
 		key_state: KeyState,
 	) -> (
-		[Keyboard; FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE + 3],
+		[Keyboard; FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE + 4],
 		WheelMouseReport,
 	) {
 		static mut MOUSE_REPORT_BUILDER: MouseReportBuilder = MouseReportBuilder::new();
 		let layer = self.get_buffered_layer(key_state);
-		let mut key_events = [Keyboard::default(); FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE + 3];
+		let mut key_events = [Keyboard::default(); FINGER_CLUSTER_SIZE + THUMB_CLUSTER_SIZE + 4];
 
 		key_events[0..FINGER_CLUSTER_SIZE]
 			.iter_mut()
@@ -276,13 +276,14 @@ impl Keymap {
 		unsafe { (key_events, MOUSE_REPORT_BUILDER.build()) }
 	}
 
-	fn generate_thumb_events(&self, state: ThumbState, other_key_pressed: bool) -> [Keyboard; 3] {
-		static mut MOD_KEYS: [ModKey; 3] = [
+	fn generate_thumb_events(&self, state: ThumbState, other_key_pressed: bool) -> [Keyboard; 4] {
+		static mut MOD_KEYS: [ModKey; 4] = [
 			ModKey::new(Modifier::Control),
 			ModKey::new(Modifier::Shift),
 			ModKey::new(Modifier::Alt),
+			ModKey::new(Modifier::Gui),
 		];
-		let mut key_state = [false; 3];
+		let mut key_state = [false; 4];
 		self.default_layer()
 			.thumb_cluster
 			.iter()
@@ -301,6 +302,7 @@ impl Keymap {
 				MOD_KEYS[0].fire(other_key_pressed),
 				MOD_KEYS[1].fire(other_key_pressed),
 				MOD_KEYS[2].fire(other_key_pressed),
+				MOD_KEYS[3].fire(other_key_pressed),
 			]
 		}
 	}
@@ -383,6 +385,7 @@ enum Modifier {
 	Control,
 	Shift,
 	Alt,
+	Gui,
 }
 impl Modifier {
 	fn to_event(&self) -> Keyboard {
@@ -390,14 +393,11 @@ impl Modifier {
 			Self::Control => Keyboard::LeftControl,
 			Self::Shift => Keyboard::LeftShift,
 			Self::Alt => Keyboard::LeftAlt,
+			Self::Gui => Keyboard::LeftGUI,
 		}
 	}
 	fn index(&self) -> usize {
-		match self {
-			Self::Control => 0,
-			Self::Shift => 1,
-			Self::Alt => 2,
-		}
+		*self as usize
 	}
 }
 
@@ -475,7 +475,7 @@ impl Default for Keymap {
 					Some(FingerKey::Keyboard(Keyboard::ForwardSlash)),
 				],
 				thumb_cluster: [
-					Some(ThumbKey::UpDown(Keyboard::Escape)),
+					Some(ThumbKey::OneShotModifier(Modifier::Gui)),
 					Some(ThumbKey::OneShotModifier(Modifier::Alt)),
 					Some(ThumbKey::LayerModifier(2)),
 					Some(ThumbKey::OneShotModifier(Modifier::Shift)),
