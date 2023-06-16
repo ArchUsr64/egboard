@@ -64,18 +64,6 @@ struct MouseReportBuilder {
 }
 impl MouseReportBuilder {
 	const DEFAULT_SPEED: i8 = 10;
-	//To match(QMK)
-	//Cursor speed benchmarks from https://cps-check.com/mouse-acceleration
-	//Default => 1530px/s
-	//Speed 0 => 20px/s
-	//Speed 1 => 240px/s
-	//Speed 2 => 3840px/s
-	//
-	//Scroll benchmarks from https://cpstest.org/scroll-test.php
-	//Default => 2880px/s
-	//Speed 0 => 360px/s
-	//Speed 1 => 960px/s
-	//Speed 2 => 5640px/s
 
 	const fn new() -> Self {
 		Self {
