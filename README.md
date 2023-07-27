@@ -1,7 +1,7 @@
 # Egboard
 
-A column staggered ortholinear split keyboard powered by raspberry pi pico running rust.
-# ![board](https://github.com/ArchUsr64/egboard/assets/83179501/275c1935-c2be-4ced-8664-789b1430a289)
+A column staggered ortholinear keyboard powered by raspberry pi pico running rust.
+![top](https://github.com/ArchUsr64/egboard/assets/83179501/86e5122f-7d14-4ca2-91a6-49251adbade7)
 
 ### Steps to build the firmware:
 1. Install [rust](https://rust-lang.org)
@@ -15,3 +15,9 @@ A column staggered ortholinear split keyboard powered by raspberry pi pico runni
 5. A new `out.uf2` file should be created
 
 The hardware files required to generate the layout can be found [here](https://github.com/ArchUsr64/egboard/tree/main/files/hardware)
+
+### Typing Test:
+
+
+https://github.com/ArchUsr64/egboard/assets/83179501/e7029c53-4c0d-4cbe-ae44-c0f4a8198730
+
