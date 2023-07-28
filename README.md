@@ -16,8 +16,12 @@ A column staggered ortholinear keyboard powered by raspberry pi pico running rus
 
 The hardware files required to generate the layout can be found [here](https://github.com/ArchUsr64/egboard/tree/main/files/hardware)
 
+### Project report:
+View on [google docs](https://docs.google.com/document/d/e/2PACX-1vQndY82YCXaxrvmDw9xcZhzOaJTsP58XWRm1BeVet43TQnjNqOJDFl5XpR4vhXsUciPnCYtNsxyYR8w/pub)
+
 ### Typing Test:
 
 
 https://github.com/ArchUsr64/egboard/assets/83179501/e7029c53-4c0d-4cbe-ae44-c0f4a8198730
 
+<iframe src="https://docs.google.com/document/d/e/2PACX-1vQndY82YCXaxrvmDw9xcZhzOaJTsP58XWRm1BeVet43TQnjNqOJDFl5XpR4vhXsUciPnCYtNsxyYR8w/pub?embedded=true"></iframe>
