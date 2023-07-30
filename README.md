@@ -9,6 +9,9 @@ A column staggered ortholinear keyboard powered by the Raspberry Pi Pico running
 - 1 kHz polling rate
 - One-shot modifiers
 
+## Typing Test:
+https://github.com/ArchUsr64/egboard/assets/83179501/e7029c53-4c0d-4cbe-ae44-c0f4a8198730
+
 ## Bulding the firmware
 Pre-built `uf2` is available at [releases](https://github.com/ArchUsr64/egboard/releases)    
 Otherwise to build from source:
@@ -81,9 +84,6 @@ Each `Layer` comprises of a 30 element array for the finger cluster and 8 elemen
 ![layer2](https://github.com/ArchUsr64/egboard/assets/83179501/5976e590-767e-4085-8efe-f26f360f40ee)
 #### Layer 3
 ![layer3](https://github.com/ArchUsr64/egboard/assets/83179501/8cf56c59-4d1a-41af-80f8-365680e011fc)
-
-## Typing Test:
-https://github.com/ArchUsr64/egboard/assets/83179501/e7029c53-4c0d-4cbe-ae44-c0f4a8198730
 
 ## Project report:
 View on [google docs](https://docs.google.com/document/d/e/2PACX-1vQndY82YCXaxrvmDw9xcZhzOaJTsP58XWRm1BeVet43TQnjNqOJDFl5XpR4vhXsUciPnCYtNsxyYR8w/pub)
