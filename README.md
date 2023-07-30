@@ -86,4 +86,4 @@ Each `Layer` comprises of a 30 element array for the finger cluster and 8 elemen
 ![layer3](https://github.com/ArchUsr64/egboard/assets/83179501/8cf56c59-4d1a-41af-80f8-365680e011fc)
 
 ## Project report:
-View on [google docs](https://docs.google.com/document/d/e/2PACX-1vQndY82YCXaxrvmDw9xcZhzOaJTsP58XWRm1BeVet43TQnjNqOJDFl5XpR4vhXsUciPnCYtNsxyYR8w/pub)
+View on [google drive](https://drive.google.com/file/d/1Uriu8rilq74pMCr6YEYRT7JyN7HJisrl/view?usp=sharing)
