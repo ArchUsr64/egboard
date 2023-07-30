@@ -1,6 +1,6 @@
 # Egboard
 
-A column staggered ortholinear keyboard powered by raspberry pi pico running rust.
+A column staggered ortholinear keyboard powered by the Raspberry Pi Pico running Rust!
 ![top](https://github.com/ArchUsr64/egboard/assets/83179501/86e5122f-7d14-4ca2-91a6-49251adbade7)
 
 ## Features
@@ -10,7 +10,7 @@ A column staggered ortholinear keyboard powered by raspberry pi pico running rus
 - One-shot modifiers
 
 ## Bulding the firmware
-Pre-built `uf2` is available at [tbd]  
+Pre-built `uf2` is available at [releases](https://github.com/ArchUsr64/egboard/releases)    
 Otherwise to build from source:
 1. Install [rust](https://rust-lang.org)
 2. Download the toolchain for the `thumbv6-none-eabi`(ARM Cortex-M0+) target  
