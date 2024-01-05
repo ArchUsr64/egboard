@@ -12,11 +12,14 @@ module layout_with_holes(holes = false) {
 	module holes(size) {
 		holes = [
 			[5, -5],
+			[35, -5],
 			[65, -5],
-			[5, -67],
-			[43, -87],
-			[81, -88],
-			[125, -98],
+			[95, -5],
+			[5, -37.5],
+			[5, -70],
+			[43, -80],
+			[83, -92],
+			[127, -104],
 		];
 		for (i = [0:len(holes) - 1]) {
 			translate([holes[i][0], holes[i][1], 0]) circle(d = size);
@@ -28,7 +31,7 @@ module layout_with_holes(holes = false) {
 				translate([108, -50, 0]) rotate(16) square([22, 85], center = true);
 				layout(false);
 				rounded = 4;
-				size = [106.1 - 2 * rounded, 72 - 2 * rounded];
+				size = [106.1 - 2 * rounded, 76 - 2 * rounded];
 				offset(rounded) translate([rounded, -size[1] - rounded, 0]) square(size);
 				holes(screw_offset);
 			}
@@ -38,8 +41,8 @@ module layout_with_holes(holes = false) {
 			}
 		}
 	}
-	size = [45, 102];
-	translate([0, size[1] / 2 - 8, 0]) square(size, center = true);
+	size = [40, 104];
+	translate([0, size[1] / 2 - 10, 0]) square(size, center = true);
 	mirror([1, 0, 0]) translate([-offset, 0, 0]) rotate(angle) translate([-127, 90, 0])
 		plate();
 	translate([-offset, 0, 0]) rotate(angle) translate([-127, 90, 0])
@@ -91,8 +94,7 @@ module bottom() {
 
 module holes(size) {
 	holes = [
-		[30, 25],
-		[20, 92],
+		[24, 35],
 	];
 	for (i = [0:len(holes) - 1]) {
 		translate([holes[i][0], holes[i][1], 0]) circle(d = size);

@@ -29,7 +29,6 @@ module holes(holes = false) {
 		}
 	}
 
-	function vec_sum(v, i) = i == 0 ? v[0] : v[i] + vec_sum(v, i - 1);
 	function rotation_offset_till(radius, key_size, i) =
 		i * 2 * atan(.5 * key_size / (radius - key_size * 0.5));
 	for (i = [0:rotating_key_count - 1]) {
