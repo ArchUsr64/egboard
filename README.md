@@ -1,7 +1,7 @@
 # Egboard
 
 A column staggered ortholinear keyboard powered by the Raspberry Pi Pico running Rust!
-![top](https://github.com/ArchUsr64/egboard/assets/83179501/86e5122f-7d14-4ca2-91a6-49251adbade7)
+![top_compressed](https://github.com/ArchUsr64/egboard/assets/83179501/a38c7ab2-6e2d-4140-8c67-bd22cb1abe27)
 
 ## Features
 - Mouse Input
@@ -10,7 +10,7 @@ A column staggered ortholinear keyboard powered by the Raspberry Pi Pico running
 - One-shot modifiers
 
 ## Typing Test:
-https://github.com/ArchUsr64/egboard/assets/83179501/e7029c53-4c0d-4cbe-ae44-c0f4a8198730
+https://github.com/ArchUsr64/egboard/assets/83179501/ff6934fe-465e-4626-92a0-021e62bb25d1
 
 ## Bulding the firmware
 Pre-built `uf2` is available at [releases](https://github.com/ArchUsr64/egboard/releases)    
@@ -38,9 +38,9 @@ The hardware files required to generate the top and bottom plates can be found [
 | Part | Quantity | Description |
 |  -   |    -     |  -  |
 | Raspberry Pi Pico | 1 | Microcontroller that powers the whole thing |
-| M3 screw | 36 | Used to mount the top and bottom plates together |
+| M3 screw | 40 | Used to mount the top and bottom plates together |
 | M2 screw | 4 | Used to mount the raspberry pi pico to the top plate |
-| M3 standoff | 18 | Provide spacing between the top and bottom plate to house the electronics |
+| M3 standoff | 20 | Provide spacing between the top and bottom plate to house the electronics |
 | Switch | 38 | Key switches mounted to the top plate (both 3-pin and 5-pin work)|
 | Keycaps | 38 | Keycaps for the switches |
 | Diodes | 38 | Required to achieve n-key rollover |
@@ -84,6 +84,3 @@ Each `Layer` comprises of a 30 element array for the finger cluster and 8 elemen
 ![layer2](https://github.com/ArchUsr64/egboard/assets/83179501/5976e590-767e-4085-8efe-f26f360f40ee)
 #### Layer 3
 ![layer3](https://github.com/ArchUsr64/egboard/assets/83179501/8cf56c59-4d1a-41af-80f8-365680e011fc)
-
-## Project report:
-View on [google drive](https://drive.google.com/file/d/1Uriu8rilq74pMCr6YEYRT7JyN7HJisrl/view?usp=sharing)
