@@ -77,10 +77,11 @@ Each `Layer` comprises of a 30 element array for the finger cluster and 8 elemen
 
 ### Provided default keymap
 #### Layer 0
-![layer0](https://github.com/ArchUsr64/egboard/assets/83179501/c2651874-c26f-41ad-954a-eae0328679d4)
+![image](https://github.com/ArchUsr64/egboard/assets/83179501/0fab39cf-b962-45c4-89ce-3a13087ea864)
 #### Layer 1
-![layer1](https://github.com/ArchUsr64/egboard/assets/83179501/e2703591-1a94-4069-b5e0-3f3d1c1d7fb0)
+![image](https://github.com/ArchUsr64/egboard/assets/83179501/c27d3230-f99c-4007-8cd1-f5dbe76c6152)
 #### Layer 2
-![layer2](https://github.com/ArchUsr64/egboard/assets/83179501/5976e590-767e-4085-8efe-f26f360f40ee)
+![image](https://github.com/ArchUsr64/egboard/assets/83179501/333706c0-db0f-48df-8c7d-0c67c6ebdffa)
 #### Layer 3
-![layer3](https://github.com/ArchUsr64/egboard/assets/83179501/8cf56c59-4d1a-41af-80f8-365680e011fc)
+![image](https://github.com/ArchUsr64/egboard/assets/83179501/1be92aee-8e91-41f6-9cb2-fe361d7eb696)
+
