@@ -53,17 +53,18 @@ enum MouseEvent {
 	MiddleClick,
 	Cursor(Direction),
 	Scroll(Direction),
-	SetSpeed(u8),
+	/// (cursor, scroll) speeds
+	SetSpeed((i8, i8)),
 }
 struct MouseReportBuilder {
 	cursor: (i8, i8),
 	buttons: [bool; 3],
 	scroll_keys: [ScrollKey; 4],
 	scroll_key_state: [bool; 4],
-	speed: i8,
+	speed: (i8, i8),
 }
 impl MouseReportBuilder {
-	const DEFAULT_SPEED: i8 = 10;
+	const DEFAULT_SPEED: (i8, i8) = (10, 1);
 
 	const fn new() -> Self {
 		Self {
@@ -93,7 +94,7 @@ impl MouseReportBuilder {
 				Left => self.scroll_key_state[2] = true,
 				Right => self.scroll_key_state[3] = true,
 			},
-			MouseEvent::SetSpeed(val) => self.speed = val as i8,
+			MouseEvent::SetSpeed(val) => self.speed = val,
 		}
 	}
 
@@ -109,7 +110,7 @@ impl MouseReportBuilder {
 			.map(|(i, pressed)| *pressed as u8 * (1 << i))
 			.sum::<u8>();
 		//Divide by sqrt(2) if the cursor speed is two dimensional
-		let mut cursor_speed = self.speed;
+		let (mut cursor_speed, scroll_speed) = self.speed;
 		if self.cursor.0 != 0 && self.cursor.1 != 0 {
 			cursor_speed = cursor_speed.saturating_mul(10);
 			cursor_speed /= 14;
@@ -118,9 +119,9 @@ impl MouseReportBuilder {
 			}
 		}
 		let vertical_wheel =
-			(self.scroll_key_state[0] as i8 - self.scroll_key_state[1] as i8) * self.speed;
+			(self.scroll_key_state[0] as i8 - self.scroll_key_state[1] as i8) * scroll_speed;
 		let horizontal_wheel =
-			(self.scroll_key_state[3] as i8 - self.scroll_key_state[2] as i8) * self.speed;
+			(self.scroll_key_state[3] as i8 - self.scroll_key_state[2] as i8) * scroll_speed;
 		let report = WheelMouseReport {
 			buttons,
 			x: self.cursor.0 * cursor_speed,

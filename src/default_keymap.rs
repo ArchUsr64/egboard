@@ -106,7 +106,7 @@ pub fn keymap() -> Keymap {
 				Some(FingerKey::Mouse(MouseEvent::Scroll(Direction::Down))),
 				Some(FingerKey::Mouse(MouseEvent::Scroll(Direction::Up))),
 				Some(FingerKey::Mouse(MouseEvent::Scroll(Direction::Right))),
-				Some(FingerKey::Mouse(MouseEvent::SetSpeed(16))),
+				Some(FingerKey::Mouse(MouseEvent::SetSpeed((16, 5)))),
 				//Row 2
 				Some(FingerKey::Keyboard(Keyboard::Tab)),
 				Some(FingerKey::Mouse(MouseEvent::Cursor(Direction::Left))),
@@ -117,7 +117,7 @@ pub fn keymap() -> Keymap {
 				Some(FingerKey::Mouse(MouseEvent::LeftClick)),
 				Some(FingerKey::Mouse(MouseEvent::RightClick)),
 				Some(FingerKey::Keyboard(Keyboard::ReturnEnter)),
-				Some(FingerKey::Mouse(MouseEvent::SetSpeed(2))),
+				Some(FingerKey::Mouse(MouseEvent::SetSpeed((2, 1)))),
 				//Row 3
 				None,
 				None,
@@ -128,7 +128,7 @@ pub fn keymap() -> Keymap {
 				None,
 				None,
 				None,
-				Some(FingerKey::Mouse(MouseEvent::SetSpeed(1))),
+				Some(FingerKey::Mouse(MouseEvent::SetSpeed((1, 1)))),
 			],
 			thumb_cluster: [
 				None,
