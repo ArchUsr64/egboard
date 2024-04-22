@@ -92,6 +92,7 @@ fn main() -> ! {
 	(0..DEBOUNCE_BUFFER_SIZE).for_each(|_| {
 		let _ = state_buffer.push(0);
 	});
+	let mut prev_mouse_button = 0;
 
 	let keymap = Keymap::default();
 	let empty_mouse_report = WheelMouseReport::default();
@@ -128,13 +129,15 @@ fn main() -> ! {
 				}
 			};
 
-			if mouse_report != empty_mouse_report {
+			if mouse_report != empty_mouse_report || mouse_report.buttons != prev_mouse_button {
 				match egboard
 					.interface::<device::mouse::WheelMouseInterface<'_, _>, _>()
 					.write_report(&mouse_report)
 				{
 					Err(UsbHidError::WouldBlock) => {}
-					Ok(_) => {}
+					Ok(_) => {
+						prev_mouse_button = mouse_report.buttons;
+					}
 					Err(e) => {
 						core::panic!("Failed to write mouse report: {:?}", e)
 					}
