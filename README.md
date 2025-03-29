@@ -16,13 +16,13 @@ https://github.com/ArchUsr64/egboard/assets/83179501/ff6934fe-465e-4626-92a0-021
 Pre-built `uf2` is available at [releases](https://github.com/ArchUsr64/egboard/releases)    
 Otherwise to build from source:
 1. Install [rust](https://rust-lang.org)
-2. Download the toolchain for the `thumbv6-none-eabi`(ARM Cortex-M0+) target  
-   `rustup target add thumbv6-none-eabi`
+2. Download the toolchain for the `thumbv6m-none-eabi`(ARM Cortex-M0+) target 
+   `rustup target add thumbv6m-none-eabi`
 3. Build the firmware elf  
    `cargo build --release`
 4. Converting elf to uf2 using [elf2uf2-rs](https://github.com/JoNil/elf2uf2-rs)  
    `cargo install elf2uf2-rs`  
-   `elf2uf2-rs target/thumbv6-none-eabi/release/egboard egboard.uf2`
+   `elf2uf2-rs target/thumbv6m-none-eabi/release/egboard egboard.uf2`
 5. A new `egboard.uf2` file should be created
 
 ### Uploading the uf2 to pico:
