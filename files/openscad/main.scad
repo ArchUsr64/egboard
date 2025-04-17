@@ -27,8 +27,12 @@ module layout_with_holes(holes = false) {
 	}
 	module plate() {
 		difference() {
+			val = 55;
+			x_val = 50;
 			union() {
-				translate([108, -50, 0]) rotate(16) square([22, 85], center = true);
+				offset(rounded) rotate(-angle) translate([x_val,  - val / 2, 0]) square([x_val * 2 - 2 * rounded, 10 + val - 2 * rounded], center = true);
+				translate([108, -50, 0]) rotate(-angle) square([22, 85], center = true);
+				translate([0, -10, 0]) square([10, 10]);
 				layout(false);
 				rounded = 4;
 				size = [106.1 - 2 * rounded, 76 - 2 * rounded];
@@ -41,17 +45,20 @@ module layout_with_holes(holes = false) {
 			}
 		}
 	}
-	size = [40, 104];
-	translate([0, size[1] / 2 - 10, 0]) square(size, center = true);
+	size = [40, 141.85];
+	translate([0, size[1] / 2 - 12, 0]) square(size, center = true);
+	// translate([0, 106.29996, 0]) square([220.809, 35], center = true);
 	mirror([1, 0, 0]) translate([-offset, 0, 0]) rotate(angle) translate([-127, 90, 0])
 		plate();
 	translate([-offset, 0, 0]) rotate(angle) translate([-127, 90, 0])
 		plate();
 }
-bottom();
+
+top();
 // rotate(90) translate([0, -50, 0]) top();
 offset = 10;
 channel_height = 103;
+
 module top() {
 	module type_a_screw_holes() {
 		x_offset = 11.82;
