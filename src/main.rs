@@ -16,6 +16,7 @@ use rp_pico::{entry, hal};
 use embedded_hal::digital::v2::*;
 use embedded_hal::prelude::*;
 use fugit::ExtU32;
+use fugit::RateExtU32;
 use heapless::Vec;
 use usb_device::class_prelude::*;
 use usb_device::prelude::*;
@@ -24,13 +25,8 @@ use usbd_human_interface_device::prelude::*;
 
 #[entry]
 fn main() -> ! {
-	use cortex_m::delay::Delay;
-	use rp_pico::hal::{
-		pac::{CorePeripherals, Peripherals},
-		Clock, Watchdog,
-	};
+	use rp_pico::hal::{pac::Peripherals, Watchdog};
 	let mut pac = Peripherals::take().unwrap();
-	let core = CorePeripherals::take().unwrap();
 	let mut watchdog = Watchdog::new(pac.WATCHDOG);
 	let clocks = rp_pico::hal::clocks::init_clocks_and_plls(
 		rp_pico::XOSC_CRYSTAL_FREQ,
@@ -44,7 +40,6 @@ fn main() -> ! {
 	.ok()
 	.unwrap();
 	let timer = hal::Timer::new(pac.TIMER, &mut pac.RESETS);
-	let mut delay = Delay::new(core.SYST, clocks.system_clock.freq().to_Hz());
 	let sio = hal::Sio::new(pac.SIO);
 	let pins = rp_pico::Pins::new(
 		pac.IO_BANK0,
@@ -60,6 +55,22 @@ fn main() -> ! {
 		&mut pac.RESETS,
 	));
 
+	// Configure two pins as being I²C, not GPIO
+	let sda_pin = pins.gpio18.into_mode::<hal::gpio::FunctionI2C>();
+	let scl_pin = pins.gpio19.into_mode::<hal::gpio::FunctionI2C>();
+
+	// Create the I²C drive, using the two pre-configured pins. This will fail
+	// at compile time if the pins are in the wrong mode, or if this I²C
+	// peripheral isn't available on these pins!
+	let mut i2c = hal::I2C::i2c1(
+		pac.I2C1,
+		sda_pin,
+		scl_pin, // Try `not_an_scl_pin` here
+		400_u32.kHz(),
+		&mut pac.RESETS,
+		&clocks.system_clock,
+	);
+
 	use usbd_human_interface_device::device;
 	let mut egboard = UsbHidClassBuilder::new()
 		.add_interface(device::keyboard::NKROBootKeyboardConfig::default())
@@ -73,14 +84,6 @@ fn main() -> ! {
 
 	let mut led = pins.led.into_push_pull_output();
 	led.set_high().unwrap();
-
-	use core::convert::Infallible;
-	use embedded_hal::digital::v2::{InputPin, OutputPin};
-
-	let mut col: [&mut dyn OutputPin<Error = Infallible>; 10] =
-		output_keys!(pins, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4);
-	col.iter_mut().for_each(|pin| pin.set_low().unwrap());
-	let row: [&dyn InputPin<Error = Infallible>; 4] = input_keys!(pins, 0, 1, 2, 3);
 
 	let mut usb_polling_count_down = timer.count_down();
 	usb_polling_count_down.start(USB_POLLING_DELAY_MS.millis());
@@ -99,17 +102,14 @@ fn main() -> ! {
 
 	loop {
 		state_buffer.remove(0);
-		let mut state = 0;
-		for (i, col_pin) in col.iter_mut().enumerate() {
-			for (j, row_pin) in row.iter().enumerate() {
-				let _ = col_pin.set_high();
-				delay.delay_us(1);
-				if row_pin.is_high().unwrap() {
-					state |= 1 << ((j * 10 + i) as u64);
-				}
-				let _ = col_pin.set_low();
-			}
-		}
+
+		let mut data = [0; 5];
+		i2c.read(0x64, &mut data).unwrap();
+		let state = data[0] as u64
+			| (data[1] as u64) << 8
+			| (data[2] as u64) << 16
+			| (data[3] as u64) << 24
+			| (data[4] as u64) << 32;
 		let _ = state_buffer.push(state);
 
 		if usb_polling_count_down.wait().is_ok() {

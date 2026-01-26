@@ -1,4 +1,5 @@
 #include <RF24.h>
+#include <Wire.h>
 
 RF24 radio(8, 9);
 
@@ -8,6 +9,7 @@ const uint8_t RADIO_ADDRESS[6] = "ArchUsr64";
 #define TIMEOUT_MS 5000
 
 uint32_t last_transmission_timestamp = 0;
+uint8_t keyboard_bytes[5];
 
 void setup() {
 	Serial.begin(115200);
@@ -21,12 +23,15 @@ void setup() {
 	radio.setPALevel(RF24_PA_HIGH);
 	radio.startListening();
 
+	Wire.begin(0x64);
+	Wire.onRequest(i2c_response);
+
 	pinMode(STATUS_LED, OUTPUT);
 	digitalWrite(STATUS_LED, HIGH);
+	memset(keyboard_bytes, 0, sizeof(keyboard_bytes));
 }
 
 void loop() {
-	uint8_t keyboard_bytes[5];
 	if (radio.available()) {
 		digitalWrite(STATUS_LED, HIGH);
 		last_transmission_timestamp = millis();
@@ -45,6 +50,11 @@ void loop() {
 	}
 	if (millis() - last_transmission_timestamp > TIMEOUT_MS) {
 		digitalWrite(STATUS_LED, LOW);
+		memset(keyboard_bytes, 0, sizeof(keyboard_bytes));
 		Serial.println("Timed out, connection broked?");
 	}
+}
+
+void i2c_response() {
+	Wire.write(keyboard_bytes, sizeof(keyboard_bytes));
 }
